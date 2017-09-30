@@ -4,7 +4,7 @@
 //
 // @name            IkaTweaks
 // @description     Improvements for Ikariam
-// @version         0.3.0
+// @version         1.0 beta
 // @author          Yvonne P.
 // @license         https://opensource.org/licenses/MIT
 // @icon            http://de.ikariam.gameforge.com/favicon.ico
