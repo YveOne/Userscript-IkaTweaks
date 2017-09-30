@@ -17,9 +17,9 @@
 
 (function(window){
 
-    const _GREASYFORK_URL_ = '#';
-    const _OPENUSERJS_URL_ = '#';
-    const _GITHUBREPO_URL_ = '#';
+    const _GREASYFORK_URL_ = 'https://greasyfork.org/de/scripts/33659-ikatweaks';
+    const _OPENUSERJS_URL_ = 'https://openuserjs.org/scripts/YveOne/IkaTweaks';
+    const _GITHUBREPO_URL_ = 'https://github.com/YveOne/Userscript-IkaTweaks';
     const _CREDIT01_URL_ = 'http://www.iconarchive.com/show/one-piece-character-icons-by-crountch.html';
 
     //--------------------------------------------------------------------------------------------------
