@@ -9,7 +9,7 @@
 // @license         https://opensource.org/licenses/MIT
 // @icon            http://de.ikariam.gameforge.com/favicon.ico
 //
-// @include         /^https?:\/\/s\d+-de\.ikariam\.gameforge\.com.*?$/
+// @include         /^https?:\/\/s\d+-\w+\.ikariam\.gameforge\.com.*?$/
 // @run-at          document-start
 //
 // ==/UserScript==
