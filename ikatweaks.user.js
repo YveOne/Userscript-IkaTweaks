@@ -4,7 +4,7 @@
 //
 // @name            IkaTweaks
 // @description     Improvements for Ikariam
-// @version         1.0 beta
+// @version         1.3
 // @author          Yvonne P.
 // @license         https://opensource.org/licenses/MIT
 // @icon            http://de.ikariam.gameforge.com/favicon.ico
@@ -16,57 +16,29 @@
 //
 
 (function(window){
+    "use strict";
 
-    const _GREASYFORK_URL_ = 'https://greasyfork.org/de/scripts/33659-ikatweaks';
-    const _OPENUSERJS_URL_ = 'https://openuserjs.org/scripts/YveOne/IkaTweaks';
-    const _GITHUBREPO_URL_ = 'https://github.com/YveOne/Userscript-IkaTweaks';
-    const _CREDIT01_URL_ = 'http://www.iconarchive.com/show/one-piece-character-icons-by-crountch.html';
+    //--------------------------------------------------------------------------------------------------
+    // CONSTANTS
+
+    const _LINKS_ = {
+        OnePiece    : 'http://www.iconarchive.com/show/one-piece-character-icons-by-crountch.html',
+        GreasyFork  : 'https://greasyfork.org/de/scripts/33659-ikatweaks',
+        OpenUserJS  : 'https://openuserjs.org/scripts/YveOne/IkaTweaks',
+        GitHubRepo  : 'https://github.com/YveOne/Userscript-IkaTweaks',
+    };
+
+    // CONSTANTS
+    //--------------------------------------------------------------------------------------------------
 
     //--------------------------------------------------------------------------------------------------
     // SYSTEM FUNCTIONS
 
-    function jsonDecode(str, dflt) {
-        var obj = null;
-        try{obj=JSON.parse(str);}catch(e){}
-        return (obj!==null) ? obj : dflt;
-    }
-
-    function injectCSS(cssText) {
-        var el = document.createElement('style');
-        el.setAttribute('type', 'text/css');
-        if(el.styleSheet) el.styleSheet.cssText = cssText;
-        else el.appendChild(document.createTextNode(cssText));
-        document.querySelector('head').appendChild(el);
-        return el;
-    }
-
-    function hookFunction(obj, fn, cb) {
-        (function(of){
-            obj[fn] = function(){
-                var ret = of.apply(this, arguments);
-                cb.apply(this, [ret, of, arguments]);
-                return ret;
-            };
-        }(obj[fn]));
-    }
-
-    function waitFor(cond, func, tOut, sleep)
-    {
-        sleep = sleep || 33;
-        var tEnd = tOut ? (new Date()).getTime()+tOut : null;
-        var ret, w4 = function() {
-            ret = cond();
-            if(ret) return func(ret);
-            if(tEnd && tEnd < (new Date()).getTime()) return func(false);
-            setTimeout(w4, sleep);
-        };
-        w4();
-    }
-
-    function removeElement(el) {
-        try{return el.parentNode.removeChild(el);}catch(e){}
-        return null;
-    }
+    function jsonDecode(str, dflt)              {var obj=null;try{obj=JSON.parse(str);}catch(e){}return((obj!==null)?obj:dflt);}
+    function injectCSS(cssText)                 {var el=document.createElement('style');el.setAttribute('type','text/css');if(el.styleSheet){el.styleSheet.cssText=cssText;}else{el.appendChild(document.createTextNode(cssText));}document.querySelector('head').appendChild(el);return el;}
+    function hookFunction(obj, fn, cb)          {(function(of){obj[fn]=function(){var ret=of.apply(this,arguments);cb.apply(this,[ret,of,arguments]);return ret;};}(obj[fn]));}
+    function waitFor(cond, func, tOut, sleep)   {sleep=sleep||33;var tEnd=tOut?(new Date()).getTime()+tOut:null;var ret,w4=function(){ret=cond();if(ret){return func(ret);}if(tEnd && tEnd<(new Date()).getTime()){return func(false);}setTimeout(w4,sleep);};w4();}
+    function removeElement(el)                  {try{return el.parentNode.removeChild(el);}catch(e){}return null;}
 
     //(c) Yvonne P.
     function LocalStorageHandler(tag) {
@@ -161,25 +133,53 @@
     //(c) Yvonne P.
     function LanguageHandler(useLocal, baseLocal)
     {
-        var l = {};
+        var str = {};
+        var ctr = {};
+        var als = {};
         function get(k) {
-            return (typeof l[k]=='string') ? l[k] : k;
+            return (typeof str[k]=='string') ? str[k] : k;
         }
-        function set(c, n) {
-            if(c===baseLocal)
+        function set(c, l, n) {
+            if(c instanceof Array)
             {
-                for(var k in n) l[k] = (typeof l[k]=='string') ? l[k] : n[k].toString();
+                while(c.length)
+                {
+                    set(c.shift(), n);
+                }
+                return;
             }
-            else if(c===useLocal)
+            if(als[c] == useLocal)
             {
-                for(var k in n) l[k] = n[k].toString();
+                c = als[c];
+            }
+            ctr[c] = l;
+            if(c == baseLocal)
+            {
+                for(var k in n) str[k] = (typeof str[k]=='string') ? str[k] : n[k].toString();
+            }
+            else
+            {
+                if(c == useLocal)
+                {
+                    for(var k in n) str[k] = n[k].toString();
+                }
             }
         }
-        return function() {
-            if(arguments.length==1) return get(arguments[0]);
-            if(arguments.length==2) return set(arguments[0], arguments[1]);
-            return l;
+        var ret = function() {
+            if(arguments.length==1) return get.apply(null, arguments);
+            if(arguments.length==3) return set.apply(null, arguments);
+            return str;
         };
+        ret.codes = function() {
+            return JSON.parse(JSON.stringify(ctr));
+        };
+        ret.alias = function(a, b) {
+            als[a] = b;
+        };
+        ret.local = function() {
+            return useLocal;
+        };
+        return ret;
     }
 
     // SYSTEM FUNCTIONS
@@ -190,8 +190,20 @@
 
     var TPL  = new EasyTemplates();
     var LS   = new LocalStorageHandler('IkaTweaks_');
-    var LANG = LanguageHandler(location.hostname.match(/s\d+\-(\w+)\.ikariam\.gameforge\.com/i)[1], 'en');
+    var LANG = LanguageHandler(LS.load('LANG', location.hostname.match(/s\d+\-(\w+)\.ikariam\.gameforge\.com/i)[1]), 'en');
     var IkaTweaks = {};
+
+    TPL.set('SelectContainer', `
+        <div id="js_{selectId}Container" class="select_container size{selectSize}">
+            <select id="js_{selectId}Options" class="dropdown" name="{selectId}Options">
+                {selectOptions}
+            </select>
+        </div>
+    `);
+
+    TPL.set('SelectOption', `
+        <option value="{value}" {selected}>{text}</option>
+    `);
 
     (function(IkaTweaks){
 
@@ -244,7 +256,7 @@
                 n.ajaxResponder.changeHTML([id,html], true);
                 window.setTimeout("ikariam.controller.adjustSizes()",1000);
 
-                sidebarButtonsLength = sidebarButtons.length;
+                var sidebarButtonsLength = sidebarButtons.length;
                 for(var i=0; i<sidebarButtonsLength; i++)
                 {
                     $('#IkaTweaksSidebar_button'+i).click(sidebarButtons[i].func);
@@ -269,7 +281,8 @@
             #TweakCitySelect_c:before,
             #TweakAdvisors_c:before,
             #TweakResources_c:before,
-            #CustomTowns_c:before {
+            #CustomTowns_c:before,
+            #UpdateChecker_c:before {
                 content: url('data:image/png;base64,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');
             }
         `);
@@ -339,14 +352,23 @@
 
         TPL.set('IkaTweaksMainview_aboutWindow', `
             <div class="contentBox01h" style="z-index: 101;">
-                <h3 class="header">{str_IkaTweaks_aboutHeader}</h3>
+                <div class="header" style="height:0px;"></div>
                 <div class="content">
                     <table class="table01"><tbody>
                         <tr>
-                            <td colspan="2" class="left">
-                                {str_IkaTweaks_aboutText1}
-                            </td>
+                            <th style="width:150px;">{selectContainer}</th>
+                            <th class="left">
+                                <input id="js_IkaTweaks_saveLanguageButton" style="width:150px;" type="button" class="button" value="{str_SaveLanguageButtonText}" />
+                            </th>
                         </tr>
+                    </tbody></table>
+                </div>
+                <div class="footer"></div>
+            </div>
+            <div class="contentBox01h" style="z-index: 101;">
+                <h3 class="header">{str_IkaTweaks_aboutHeader}</h3>
+                <div class="content">
+                    <table class="table01"><tbody>
                         <tr>
                             <td colspan="2" class="center">
                                 {str_IkaTweaks_aboutText2}
@@ -429,11 +451,29 @@
 
         showAboutWindow = function(){
             IkaTweaks.changeHTML('IkaTweaks', TPL.get('IkaTweaksMainview_tabbedWindow', {
-                mainviewContent: TPL.get('IkaTweaksMainview_aboutWindow'),
+                mainviewContent: TPL.get('IkaTweaksMainview_aboutWindow', {
+                    selectContainer     : TPL.get('SelectContainer', {
+                        selectSize      : '175',
+                        selectId        : 'IkaTweaks_Languages',
+                        selectOptions   : TPL.getEach(LANG.codes(), function(c, n){
+                            return ['SelectOption', {
+                                value   : c,
+                                text    : n,
+                                selected: (LANG.local() == c) ? 'selected="selected"' : '',
+                            }];
+                        }),
+                    }),
+                }),
             }), function(){
+                ikariam.controller.replaceDropdownMenus();
                 $('#js_tab_IkaTweaksMainview_aboutWindow').addClass('selected');
                 $('#js_tab_IkaTweaksMainview_modulesWindow').click(showSettingsWindow);
                 $('#js_tab_IkaTweaksMainview_aboutWindow').click(showAboutWindow);
+                $('#js_IkaTweaks_saveLanguageButton').click(function(){
+                    LS.save('LANG', $('#js_IkaTweaks_LanguagesOptions').val());
+                    LS.save('reopenSettingWindow', '1');
+                    location.reload();
+                });
                 $('#js_IkaTweaks_clearStorageButton').click(function(){
                     if(LS.clear())
                     {
@@ -442,22 +482,23 @@
                     }
                 });
                 $('#js_IkaTweaks_openGreasyForkButton').attr({
-                    'href': _GREASYFORK_URL_,
+                    'href': _LINKS_.GreasyFork,
                     'target': '_blank',
                 });
                 $('#js_IkaTweaks_openOpenUserJSButton').attr({
-                    'href': _OPENUSERJS_URL_,
+                    'href': _LINKS_.OpenUserJS,
                     'target': '_blank',
                 });
                 $('#js_IkaTweaks_openGitHubRepoButton').attr({
-                    'href': _GITHUBREPO_URL_,
+                    'href': _LINKS_.GitHubRepo,
                     'target': '_blank',
                 });
                 $('#myEmail').attr('style', 'position:absolute;width:82px;height:14px;display:inline-block;background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFIAAAAOCAYAAAC8YEsXAAAACXBIWXMAAAsTAAALEwEAmpwYAAAABGdBTUEAALGOfPtRkwAAACBjSFJNAAB6JQAAgIMAAPn/AACA6QAAdTAAAOpgAAA6mAAAF2+SX8VGAAADP0lEQVR42mL8//8/wyigHAAEEAuMEaor8A7KTAfi1WSYFQrEaUDsCsRKUH4nCfrLgdgFiI2h/LNAvAfNjA4oXQHEu4F4FpluJQRAYSFEwK8zQYzVlz+A1QEEEAuSpCDUgWfJtPws1GPIHiYWnIEG4Cxo4DFAI6MDGriuSGIwMIsCtxICgkT4tRPZnwABxISmACR5D8qeCY0ZEF6FpEYJ6nGYeAc0EAShtDHU8y7QVAaLQZieu1A+DOyG0oxQM8qhZtyDRqwSkjnIwBhJfSia+2YiqUF2qxKeFAZTV44lp9yFysEC7h56bgMIICYcBq+CZtNOKA5FMuQMUqAbI2VJF6gedKAENQ8Wi2eRIgYW8CbQADWGqlFCss8VRwpPg9opiOb5NKg5sAi/h2TmGSLc14EWwB3Q4qMTas8qbAEGEECMsMoGWEb+h6YKWCzsQco6yA46g6QOBP5DUw5MnxCSZWFYyktjJDNWIZWFIDFlqD1K0FQA47/DYu47qJmr0dTC3CMIDWgTNLeaoBUJHWjqkN13Buq2CixyYPOAZSSYDRBAuFLkPaij/0MxrAIAWfgeTe17AuXJPaj+d1CzkFOFCzQw0qAOvoekB5kWJGD+PaSUyICUAo2R/PAfyU70FHkPrfxDlitH0n8GlyMAAghf1t4DjSVGpJrxHhZPESqYO5BSJCNaakY24z2anntI2YtQpTILGpBpSGrfQ/3AiIRNsLQk3qP5QQlNrgKLGRgAIICY8DgOlrWRC/PVaLVyBxE1nyCecuoeUkCFIqWAciSxVdAmGT7QCbUnDSmgZqFVeOVQu5WwRAKyOuQycDVSZQqT243NAQABxITHYbCs3QH1lBJS+QRL7ml4mgcuUIfDPPkfWpa9RypvVkPN6oRG3F0kPiwQYeWsEhFNEuTIPgtNTR1I/qiARl45tKjBpg45Z1RAzTsDlXPBFakAAYSrsiGUVSsIFOCkNn73IHkSWzHjQqCBPFAAXtkABBATFkcbE9CcBk05q6CB8J7ChrEJNMXeRTJ3FVIqEMRVLg0gMEZvBgEEEBNaeUCsx1cjlS+UppR70LaiMlLPiAGpsnPFkVIHA4CHGUAAMY4OWlAHAAQYAH37+Z/ovMxFAAAAAElFTkSuQmCC);');
+                $('#myEmail').after('<span style="width:82px;height:1px;display:inline-block;"></span>');
                 $('#creditUrl1').attr({
-                    'href': _CREDIT01_URL_,
+                    'href': _LINKS_.OnePiece,
                     'target': '_blank',
-                }).html(_CREDIT01_URL_);
+                }).html(_LINKS_.OnePiece);
 
             });
         };
@@ -964,18 +1005,8 @@
         TPL.set('TweakAdvisors_advisorSelectTableTR', `
             <tr>
                 <td style="width:100px;">{text}</td>
-                <td>
-                    <div id="js_{selectId}Container" class="select_container size300">
-                        <select id="js_{selectId}Options" class="dropdown" name="{selectId}Options">
-                            {selectOptions}
-                        </select>
-                    </div>
-                </td>
+                <td>{selectContainer}</td>
             </tr>
-        `);
-
-        TPL.set('TweakAdvisors_advisorSelectOption', `
-            <option value="{value}" {selected}>{text}</option>
         `);
 
         IkaTweaks.addSidebarButton('{str_TweakAdvisors_Name}', function(){
@@ -995,14 +1026,17 @@
                             checked : (checked) ? 'checked="checked"' : '',
                             advisorsTR: TPL.getEach(advisorImages, function(advisorId, advisorData){
                                 return ['TweakAdvisors_advisorSelectTableTR', {
-                                    text         : '{str_TweakAdvisors_'+advisorId+'}',
-                                    selectId     : 'TweakAdvisors_advisorSelect_'+advisorId,
-                                    selectOptions: TPL.getEach(advisorData, function(advisorImageId, advisorImageData){
-                                        return ['TweakAdvisors_advisorSelectOption', {
-                                            value   : advisorImageId,
-                                            text    : '{str_TweakAdvisors_'+advisorImageId+'}',
-                                            selected: (modData.replaceAdvisorWith[advisorId] == advisorImageId) ? 'selected="selected"' : '',
-                                        }];
+                                    text                : '{str_TweakAdvisors_'+advisorId+'}',
+                                    selectContainer     : TPL.get('SelectContainer', {
+                                        selectSize      : '300',
+                                        selectId        : 'TweakAdvisors_advisorSelect_'+advisorId,
+                                        selectOptions   : TPL.getEach(advisorData, function(advisorImageId, advisorImageData){
+                                            return ['SelectOption', {
+                                                value   : advisorImageId,
+                                                text    : '{str_TweakAdvisors_'+advisorImageId+'}',
+                                                selected: (modData.replaceAdvisorWith[advisorId] == advisorImageId) ? 'selected="selected"' : '',
+                                            }];
+                                        }),
                                     }),
                                 }];
                             }),
@@ -1278,15 +1312,9 @@
                 <div class="content">
                     <table class="table01 left"><tbody>
                         <tr>
-                            <th style="width:300px;">
-                                <div id="js_{selectId}Container" class="select_container size300">
-                                    <select id="js_{selectId}Options" class="dropdown" name="{selectId}Options">
-                                        {selectOptions}
-                                    </select>
-                                </div>
-                            </th>
+                            <th style="width:300px;">{selectContainer}</th>
                             <th class="left">
-                                <input id="js_CustomTowns_savePositionsButton" type="button" class="button" value="{str_SaveSettings}" />
+                                <input id="js_CustomTowns_savePositionsButton" type="button" class="button" value="{str_CustomTowns_SavePositionsButtonText}" />
                             </th>
                         </tr>
                         <tr><td colspan="2">
@@ -1297,10 +1325,6 @@
                 </div>
                 <div class="footer"></div>
             </div>
-        `);
-
-        TPL.set('CustomTowns_citySelectOption', `
-            <option value="{value}" {selected}>{text}</option>
         `);
 
         TPL.set('CustomTowns_dragableButton', `
@@ -1497,14 +1521,17 @@
 
             IkaTweaks.changeHTML('CustomTowns', TPL.get('CustomTowns_tabbedWindow', {
                 tabbedContent: TPL.get('CustomTowns_positionsWindow', {
-                    selectId: 'CustomTowns_citySelect',
-                    selectOptions: TPL.getEach(relatedCityData, function(cityKey, relatedCity){
-                        if(!relatedCity || relatedCity.relationship != 'ownCity') return null;
-                        return ['CustomTowns_citySelectOption', {
-                            value: relatedCity.id,
-                            text:  relatedCity.name,
-                            selected: (cityKey == relatedCityData.selectedCity) ? 'selected="selected"' : '',
-                        }];
+                    selectContainer     : TPL.get('SelectContainer', {
+                        selectSize      : '175',
+                        selectId        : 'CustomTowns_citySelect',
+                        selectOptions   : TPL.getEach(relatedCityData, function(cityKey, relatedCity){
+                            if(!relatedCity || relatedCity.relationship != 'ownCity') return null;
+                            return ['SelectOption', {
+                                value: relatedCity.id,
+                                text:  relatedCity.name,
+                                selected: (cityKey == relatedCityData.selectedCity) ? 'selected="selected"' : '',
+                            }];
+                        }),
                     }),
                 }),
             }), function(){
@@ -1536,7 +1563,7 @@
     IkaTweaks.setModule('TweakResources', '{str_TweakResources_Name}', '{str_TweakResources_Info}', function(){
 
         var modData = jsonDecode(LS.load('TweakResources'), {});
-        if(typeof modData.showMissing   == 'undefined') modData.showMissing = false;
+        if(typeof modData.showMissing   == 'undefined') modData.showMissing = true;
 
         TPL.set('TweakResources_settingsWindow', `
             <div id="mainview">
@@ -1610,7 +1637,6 @@
                 if(!n || n===null) return;
                 if(n.ajaxResponder===null){n.ajaxResponder=ikariam.getClass(ajax.Responder);}
                 hookFunction(n.ajaxResponder, 'changeView', buildingUpgradeUpdate);
-                //hookFunction(n.ajaxResponder, 'updateTemplateData', buildingUpgradeUpdate);
                 buildingUpgradeUpdate();
             }, 5000, 33);
         };
@@ -1649,20 +1675,159 @@
     // MODULE: TweakResources
     //-----------------------------------------------------------------------------
 
+    //-----------------------------------------------------------------------------
+    // MODULE: UpdateChecker
+
+    IkaTweaks.setModule('UpdateChecker', '{str_UpdateChecker_Name}', '{str_UpdateChecker_Info}', function(){
+
+        TPL.set('UpdateChecker_window', `
+            <div id="mainview">
+                <div class='buildingDescription'><h1>{str_TweakResources_Name}</h1></div>
+                <div>
+                    <div class="contentBox01h" style="z-index: 101;">
+                        <div class="header" style="height:0px;"></div>
+                        <div class="content">
+                            <table class="table01" id="IkaTweaksUpdateChecker_table">
+                                <tr>
+                                    <th class="left" style="width:150px;">
+                                        <input id="IkaTweaksUpdateChecker_forceButton" style="width:150px;" type="button" class="button" value="{str_UpdateChecker_forceNow}" />
+                                    </th>
+                                    <th class="left">
+                                        {str_UpdateChecker_lastResult}: {lastResult}
+                                    </th>
+                                </tr>
+                                <tr>
+                                    <th class="left" colspan="2">
+                                        {str_UpdateChecker_HowDowsThisWork}
+                                    </th>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="footer"></div>
+                    </div>
+                    <div class="contentBox01h" style="z-index: 101;display:none;" id="IkaTweaksUpdateChecker_linksBox">
+                        <h3 class="header">{str_UpdateChecker_linksHeader}</h3>
+                        <div class="content">
+                            <table class="table01">
+                                <tr>
+                                    <th class="center">
+                                        <div class="centerButton">
+                                            <a id="js_IkaTweaks_openGreasyForkButton" class="button">{str_ToGreasyForkText}</a>
+                                            <a id="js_IkaTweaks_openOpenUserJSButton" class="button">{str_ToOpenUserJSText}</a>
+                                            <a id="js_IkaTweaks_openGitHubRepoButton" class="button">{str_ToGitHubRepoText}</a>
+                                        </div>
+                                    </th>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="footer"></div>
+                    </div>
+                </div>
+            </div>
+        `);
+
+        var showWindow, showWindowAndList=false;
+        var nowMajor, nowMinor;
+        var newMajor, newMinor, lastCheckResult = '-';
+        (function(v){
+            nowMajor = parseInt(v[0]);
+            nowMinor = parseInt(v[1]);
+        })(GM_info.script.version.match(/\d+/g));
+
+        function checkImage(cb) {
+            var image = new Image();
+            image.onload = function(){
+                newMajor    = image.width;
+                newMinor    = image.height;
+                var newAvailable = (newMajor>nowMajor)||(newMajor==nowMajor&&newMinor>nowMinor);
+                if(newAvailable)
+                {
+                    lastCheckResult = '{str_UpdateChecker_newVersionAvailable}: v'+newMajor+'.'+newMinor;
+                }
+                else
+                {
+                    lastCheckResult = '{str_UpdateChecker_versionUpToDate}';
+                }
+                cb(newAvailable);
+            };
+            image.onerror = function(){
+                alert('IkaTweaks-UpdateChecker:\nFailed checking version :(');
+            };
+            //image.src = 'https://github.com/YveOne/Userscript-IkaTweaks/blob/master/versions/versionImage.gif?raw=true';
+            image.src = 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/versions/versionImage.gif';
+        }
+
+        function listVersions(cb) {
+            var table = $('#IkaTweaksUpdateChecker_table');
+            var curMajor = nowMajor;
+            var curMinor = nowMinor+1;
+            function loop() {
+                if(curMajor>newMajor)
+                {
+                    $('#IkaTweaksUpdateChecker_table tr').not(':even').addClass('alt');
+                    $('#IkaTweaksUpdateChecker_linksBox').show();
+                    ikariam.controller.adjustSizes();
+                    return cb();
+                }
+                var image = new Image();
+                image.onload = function(){
+                    table.append($('<tr></tr>').append($('<td colspan="2" class="left"></td>').append(image)));
+                    curMinor++;
+                    loop();
+                };
+                image.onerror = function(){
+                    curMajor++;
+                    curMinor=0;
+                    loop();
+                };
+                //image.src = 'https://github.com/YveOne/Userscript-IkaTweaks/blob/master/versions/version'+curMajor+'.'+curMinor+'.png?raw=true';
+                image.src = 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/versions/version'+curMajor+'.'+curMinor+'.png';
+            }
+            loop();
+        }
+
+        showWindow = function(){
+            IkaTweaks.changeHTML('UpdateChecker', TPL.get('UpdateChecker_window', {
+                lastResult: lastCheckResult,
+            }), function(){
+                $('#js_IkaTweaks_openGreasyForkButton').attr({
+                    'href': _LINKS_.GreasyFork,
+                    'target': '_blank',
+                });
+                $('#js_IkaTweaks_openOpenUserJSButton').attr({
+                    'href': _LINKS_.OpenUserJS,
+                    'target': '_blank',
+                });
+                $('#js_IkaTweaks_openGitHubRepoButton').attr({
+                    'href': _LINKS_.GitHubRepo,
+                    'target': '_blank',
+                });
+                $('#IkaTweaksUpdateChecker_forceButton').click(function(){
+                    $('#IkaTweaksUpdateChecker_forceButton').attr('disabled', 'disabled');
+                    checkImage(function(newAvailable){
+                        if(newAvailable) showWindowAndList = true;
+                        showWindow();
+                    });
+                });
+                if(showWindowAndList)
+                {
+                    showWindowAndList = false;
+                    listVersions(function(){});
+                }
+            });
+        };
+
+        IkaTweaks.addSidebarButton('{str_UpdateChecker_Name}', showWindow);
+
+    });
+
+    // MODULE: TweakResources
+    //-----------------------------------------------------------------------------
 
 
 
-
-
-
-
-
-
-
-    (function(l){
-        LANG('en', l);
-        LANG('us', l);
-    })({
+    LANG.alias('us', 'en');
+    LANG('en', 'English', {
 
         'str_IkaTweaks'             : 'IkaTweaks',
         'str_IkaTweaks_menu'        : 'IkaTweaks Menu',
@@ -1677,6 +1842,8 @@
         'str_SaveSettings'      : 'Save Settings!',
         'str_ModuleSettings'    : 'Module Settings',
 
+        'str_SaveLanguageButtonText'    : 'Set language',
+
         'str_IkaTweaks_aboutHeader'     : 'About',
         'str_IkaTweaks_creditsHeader'   : 'Credits',
 
@@ -1686,13 +1853,13 @@
         'str_ToGreasyForkText'  : 'IkaTweaks @ Greasy Fork',
         'str_ToOpenUserJSText'  : 'IkaTweaks @ OpenUserJS',
         'str_ToGitHubRepoText'  : 'IkaTweaks @ GitHub',
-        'str_IkaTweaks_aboutText1'  : '<i>(No description yet)</i>',
-        'str_IkaTweaks_aboutText2'  : 'Questions, ideas, bugs oder complaints? Email me at <span id="myEmail"></span><span style="width:82px;height:1px;display:inline-block;"></span> or visit me at: ',
+
+        'str_IkaTweaks_aboutText2'  : 'Questions, ideas, bugs oder complaints? Email me at <span id="myEmail"></span> or visit me at: ',
         'str_IkaTweaks_aboutCredit1': 'The used OnePiece images can be found on: <a id="creditUrl1"></a>', 
 
         // -- TweakCitySelect
         'str_TweakCitySelect_Name'                  : 'CitySelect',
-        'str_TweakCitySelect_Info'                  : '',
+        'str_TweakCitySelect_Info'                  : 'Extends your city dropdown menu',
         'str_TweakCitySelect_hideCoords'            : 'Hide Coords',
         'str_TweakCitySelect_showTradegoods'        : 'Show Tradegoods',
         'str_TweakCitySelect_highlightSelected'     : 'Highlight selected city',
@@ -1700,7 +1867,7 @@
 
         // -- TweakAdvisors
         'str_TweakAdvisors_Name'                    : 'Advisors',
-        'str_TweakAdvisors_Info'                    : '',
+        'str_TweakAdvisors_Info'                    : 'Change appearance of your advisors',
         'str_TweakAdvisors_hidePremiumButtons'      : 'Hide premium buttons',
         'str_TweakAdvisors_replaceAdvisors'         : 'Replace advisors',
         'str_TweakAdvisors_cities'                  : 'Cities',
@@ -1724,7 +1891,7 @@
 
         // -- CustomTowns
         'str_CustomTowns_Name'                    : 'CustomTowns',
-        'str_CustomTowns_Info'                    : '',
+        'str_CustomTowns_Info'                    : 'Hide premium buildings or re-position your town buildings',
         'str_CustomTowns_tabSettings'             : 'Towns',
         'str_CustomTowns_tabPositions'            : 'Buildings',
         'str_CustomTowns_customPositionsDisabled' : 'Enable custom positions first',
@@ -1738,15 +1905,26 @@
         'str_CustomTowns_DragDropHint'            : '<i>(Change positions by drag&drop them onto each other)</i>',
         'str_CustomTowns_restrictedPosition'      : 'Can\'t be placed there',
         'str_CustomTowns_useCustomPositions'      : 'Custom building positions',
+        'str_CustomTowns_SavePositionsButtonText' : 'Save positions',
 
         // -- TweakResource
         'str_TweakResources_Name'                   : 'Resources',
-        'str_TweakResources_Info'                   : '',
+        'str_TweakResources_Info'                   : 'Shows missing resources',
         'str_TweakResources_showMissing'            : 'Show missing resources',
+
+        // -- Updatechecker
+        'str_UpdateChecker_Name'                    : 'UpdateChecker',
+        'str_UpdateChecker_Info'                    : 'Check for new version of IkaTweaks',
+        'str_UpdateChecker_forceNow'                : 'Check now',
+        'str_UpdateChecker_lastResult'              : 'Last result',
+        'str_UpdateChecker_newVersionAvailable'     : 'New version available',
+        'str_UpdateChecker_versionUpToDate'         : 'Version is up to date',
+        'str_UpdateChecker_HowDowsThisWork'         : 'How does this work: For your own safety IkaTweaks does NOT load any extern scripts but a tiny image from GitHub. With its weight and height it will be checked if a new version is available or not ;)',
+        'str_UpdateChecker_linksHeader'             : 'Here you will get always the newest version:',
 
     });
 
-    LANG('de', {
+    LANG('de', 'Deutsch', {
 
         'str_IkaTweaks'             : 'IkaTweaks',
         'str_IkaTweaks_menu'        : 'IkaTweaks Menü',
@@ -1761,6 +1939,8 @@
         'str_SaveSettings'      : 'Einstellungen speichern!',
         'str_ModuleSettings'    : 'Modul-Einstellungen',
 
+        'str_SaveLanguageButtonText'    : 'Sprache speichern',
+
         'str_IkaTweaks_aboutHeader'     : 'Info',
         'str_IkaTweaks_creditsHeader'   : 'Credits',
 
@@ -1770,13 +1950,12 @@
         'str_ToGreasyForkText'  : 'IkaTweaks @ Greasy Fork',
         'str_ToOpenUserJSText'  : 'IkaTweaks @ OpenUserJS',
         'str_ToGitHubRepoText'  : 'IkaTweaks @ GitHub',
-        'str_IkaTweaks_aboutText1'  : '<i>(Noch keine Beschreibung, schlag doch eine vor)</i>',
-        'str_IkaTweaks_aboutText2'  : 'Fragen, Ideen, Fehler gefunden oder eine Beschwerde? Einfach eine Email an <span id="myEmail"></span><span style="width:82px;height:1px;display:inline-block;"></span> oder besuche mich auf: ',
+        'str_IkaTweaks_aboutText2'  : 'Fragen, Ideen, Fehler gefunden oder eine Beschwerde? Einfach eine Email an <span id="myEmail"></span> oder besuche mich auf: ',
         'str_IkaTweaks_aboutCredit1': 'Die hier benutzten OnePiece Bilder sind von: <a id="creditUrl1"></a>', 
 
         // -- TweakCitySelect
         'str_TweakCitySelect_Name'                  : 'CitySelect',
-        'str_TweakCitySelect_Info'                  : '',
+        'str_TweakCitySelect_Info'                  : 'Erweitert das Dropdown-Menü für die Städte',
         'str_TweakCitySelect_hideCoords'            : 'Keine Koordinaten',
         'str_TweakCitySelect_showTradegoods'        : 'Zeige Luxusgüter',
         'str_TweakCitySelect_highlightSelected'     : 'Ausgewählte Stadt hervorheben',
@@ -1784,7 +1963,7 @@
 
         // -- TweakAdvisors
         'str_TweakAdvisors_Name'                    : 'Advisors',
-        'str_TweakAdvisors_Info'                    : '',
+        'str_TweakAdvisors_Info'                    : 'Ändert das Aussehen der Berater',
         'str_TweakAdvisors_hidePremiumButtons'      : 'Verstecke Premium-Buttons',
         'str_TweakAdvisors_replaceAdvisors'         : 'Berater ersetzen',
         'str_TweakAdvisors_cities'                  : 'Städte',
@@ -1808,7 +1987,7 @@
 
         // -- CustomTowns
         'str_CustomTowns_Name'                    : 'CustomTowns',
-        'str_CustomTowns_Info'                    : '',
+        'str_CustomTowns_Info'                    : 'Verstecke Premium-Objekte oder positionier Gebäude neu',
         'str_CustomTowns_tabSettings'             : 'Städte',
         'str_CustomTowns_tabPositions'            : 'Gebäude',
         'str_CustomTowns_customPositionsDisabled' : 'Aktiviere zuerst die nötige Option',
@@ -1822,11 +2001,26 @@
         'str_CustomTowns_DragDropHint'            : '<i>(Ändere die Positionen der Gebäude per Drag&Drop)</i>',
         'str_CustomTowns_restrictedPosition'      : 'Kann dort nicht platziert werden',
         'str_CustomTowns_useCustomPositions'      : 'Veränderte Gebäude-Positionen',
+        'str_CustomTowns_SavePositionsButtonText' : 'Positionen speichern',
 
         // -- TweakResource
-        'str_TweakResources_Name'                   : 'Resources',
-        'str_TweakResources_Info'                   : '',
+        'str_TweakResources_Name'                   : 'Ressourcen',
+        'str_TweakResources_Info'                   : 'Lässt Dir fehlende Ressourcen anzeigen',
         'str_TweakResources_showMissing'            : 'Fehlende Ressourcen anzeigen',
+
+        // -- Updatechecker
+        'str_UpdateChecker_Name'                    : 'UpdateChecker',
+        'str_UpdateChecker_Info'                    : 'Sucht nach neuen IkaTweaks-Versionen',
+        'str_UpdateChecker_forceNow'                : 'Überprüfen',
+        'str_UpdateChecker_lastResult'              : 'Letztes Ergebnis',
+        'str_UpdateChecker_newVersionAvailable'     : 'Neue Version verfügbar',
+        'str_UpdateChecker_versionUpToDate'         : 'Version ist aktuell',
+        'str_UpdateChecker_HowDowsThisWork'         : 'Wie dies funktioniert: IkaTweaks lädt zu Deiner eigenen Sicherheit kein externes Script, sondern ein kleines Bild von GitHub, mit dessen Breite und Höhe überprüft wird ob eine neue Version verfügbar ist ;)',
+        'str_UpdateChecker_linksHeader'             : 'Die neuste Version gibt es immer hier:',
+
+
+
+
 
 
 
