@@ -4,7 +4,7 @@
 //
 // @name            IkaTweaks
 // @description     Improvements for Ikariam
-// @version         1.4
+// @version         1.5
 // @author          Yvonne P.
 // @license         https://opensource.org/licenses/MIT
 // @icon            http://de.ikariam.gameforge.com/favicon.ico
@@ -15,8 +15,17 @@
 // ==/UserScript==
 //
 
+/* jshint esversion: 6 */
+/* global $ */
+/* global ikariam */
+/* global ajax */
+/* global GM_info */
+/* global dataSetForView */
+/* global LocalizationStrings */
+
 (function(window){
     "use strict";
+    var jshintUnused;
 
     //--------------------------------------------------------------------------------------------------
     // CONSTANTS
@@ -34,6 +43,7 @@
     //--------------------------------------------------------------------------------------------------
     // SYSTEM FUNCTIONS
 
+    function forEach(obj, func)                 {for(var k in obj){if(obj.hasOwnProperty(k)){func(k,obj[k]);}}}
     function jsonDecode(str, dflt)              {var obj=null;try{obj=JSON.parse(str);}catch(e){}return((obj!==null)?obj:dflt);}
     function injectCSS(cssText)                 {var el=document.createElement('style');el.setAttribute('type','text/css');if(el.styleSheet){el.styleSheet.cssText=cssText;}else{el.appendChild(document.createTextNode(cssText));}document.querySelector('head').appendChild(el);return el;}
     function hookFunction(obj, fn, cb)          {(function(of){obj[fn]=function(){var ret=of.apply(this,arguments);cb.apply(this,[ret,of,arguments]);return ret;};}(obj[fn]));}
@@ -42,7 +52,6 @@
 
     //(c) Yvonne P.
     function LocalStorageHandler(tag) {
-        var that = this;
         var data = JSON.parse(localStorage.getItem(tag)) || {
             storedKeys : {},
         };
@@ -50,7 +59,12 @@
             if(data)
             {
                 var s = {};
-                for(var k2 in data.storedKeys)if(k1!=k2)s[k2]=data.storedKeys[k2];
+                forEach(data.storedKeys, function(k2){
+                    if(k1!=k2)
+                    {
+                        s[k2] = data.storedKeys[k2];
+                    }
+                });
                 data.storedKeys = s;
                 localStorage.setItem(tag, JSON.stringify(data));
             }
@@ -84,12 +98,15 @@
             return JSON.parse(JSON.stringify(data));
         };
         this.clear = function() {
-            // todo: add argument 'keys' for selective clearing
             var s = ['Remove following keys?'];
-            for(var k in data.storedKeys) s.push(' "'+k+'"');
+            forEach(data.storedKeys, function(k){
+                s.push(' "'+k+'"');
+            });
             if(confirm(s.join("\n")))
             {
-                for(var k in data.storedKeys) localStorage.removeItem(k);
+                forEach(data.storedKeys, function(k){
+                    localStorage.removeItem(k);
+                });
                 data = null;
                 return true;
             }
@@ -101,7 +118,7 @@
     function EasyTemplates() {
         var that = this;
         var tplList = {};
-        var regExpParseHtml = new RegExp('\{[a-zA-Z0-9_]+\}', 'gi');
+        var regExpParseHtml = new RegExp('\\{[a-zA-Z0-9_]+\\}', 'gi');
         this.set = function(id, html) {
             tplList[id] = html;
         };
@@ -115,7 +132,7 @@
             while(keys.length)
             {
                 var k = keys.shift();
-                var a = func(k, arr[k])
+                var a = func(k, arr[k]);
                 if(a) ret.push(that.get.apply(null, a));
             }
             return ret.join('');
@@ -155,13 +172,17 @@
             ctr[c] = l;
             if(c == baseLocal)
             {
-                for(var k in n) str[k] = (typeof str[k]=='string') ? str[k] : n[k].toString();
+                forEach(n, function(k){
+                    str[k] = (typeof str[k]=='string') ? str[k] : n[k].toString();
+                });
             }
             else
             {
                 if(c == useLocal)
-                {
-                    for(var k in n) str[k] = n[k].toString();
+                    {
+                    forEach(n, function(k){
+                        str[k] = n[k].toString();
+                    });
                 }
             }
         }
@@ -254,7 +275,7 @@
 
                 html = TPL.parse(html, LANG());
                 n.ajaxResponder.changeHTML([id,html], true);
-                window.setTimeout("ikariam.controller.adjustSizes()",1000);
+                window.setTimeout(ikariam.controller.adjustSizes, 1000);
 
                 var sidebarButtonsLength = sidebarButtons.length;
                 for(var i=0; i<sidebarButtonsLength; i++)
@@ -411,7 +432,7 @@
             </div>
         `);
 
-        var showSettingsWindow, showAboutWindow;
+        var showSettingsWindow, showAboutWindow, tutorialHintInterval;
 
         showSettingsWindow = function(){
             IkaTweaks.changeHTML('IkaTweaks', TPL.get('IkaTweaksMainview_tabbedWindow', {
@@ -433,10 +454,9 @@
                 $('#js_tab_IkaTweaksMainview_aboutWindow').click(showAboutWindow);
                 $('#js_IkaTweaks_saveModulesButton').click(function(){
                     var l = {};
-                    for(var modId in definedModules)
-                    {
+                    forEach(definedModules, function(modId){
                         l[modId] = $('#IkaTweaksMainview_modulesCheckbox'+modId+'Img').hasClass('checked');
-                    }
+                    });
                     enabledModules = l;
                     LS.save('modules', JSON.stringify(enabledModules));
                     LS.save('reopenSettingWindow', '1');
@@ -444,6 +464,7 @@
                 });
                 if(document.getElementById('js_IkaTweaks_tutorialArrow'))
                 {
+                    window.clearInterval(tutorialHintInterval);
                     LS.save('tutorialDone', '1');
                     $('#js_IkaTweaks_tutorialArrow').fadeOut();
                 }
@@ -525,7 +546,7 @@
                     'style': 'top:'+e+'px;display:block;',
                 }).appendTo($('#IkaTweaksToolbarButton'))[0];
                 var arrowCounter=0;
-                var interval = setInterval(function(){
+                tutorialHintInterval = setInterval(function(){
                     arrowCounter++;
                     arrow.style.top = (e+(Math.sin(arrowCounter/15)*10))+'px';
                 }, 10);
@@ -580,15 +601,12 @@
             $('#js_citySelectContainer span').append(getTradegoodImage('span', relatedCity.id, relatedCity.tradegood));
             var citySelectUl = $('#dropDown_js_citySelectContainer ul');
             citySelectUl.addClass('width'+citySelectUl.width());
-            for(var cityKey in relatedCityData)
-            {
-                relatedCity = relatedCityData[cityKey];
+            forEach(relatedCityData, function(cityKey, relatedCity){
                 if(relatedCity && relatedCity.relationship == 'ownCity')
                 {
                     $('#dropDown_js_citySelectContainer li[selectvalue="'+relatedCity.id+'"]').append(getTradegoodImage('li', relatedCity.id, relatedCity.tradegood));
-
                 }
-            }
+            });
         }
 
         function highlightSelected() {
@@ -641,8 +659,8 @@
 
         waitFor(function(){
             try{
-                var a = ikariam.backgroundView.updateCityDropdownMenu;
-                var b = ikariam.model.relatedCityData;
+                jshintUnused = ikariam.backgroundView.updateCityDropdownMenu;
+                jshintUnused = ikariam.model.relatedCityData;
                 return true;
             }catch(e){}
             return false;
@@ -726,57 +744,67 @@
             }), function(){
 
                 $('#TweakCitySelect_settingTable tr').not(':even').addClass('alt');
+                var TweakCitySelect_sortingList = $('#TweakCitySelect_sortingList');
 
                 ikariam.controller.replaceCheckboxes();
                 var relatedCity, relatedCityData = ikariam.model.relatedCityData;
 
-                // add current ids
+                // add current ids of moddata
                 var newSortedList = [];
                 while(modData.sortedList.length)
                 {
                     relatedCity = relatedCityData['city_'+modData.sortedList.shift()];
-                    if(!relatedCity || relatedCity.relationship != 'ownCity') continue;
-                    if(newSortedList.indexOf(relatedCity.id) == -1) newSortedList.push(relatedCity.id);
+                    if(relatedCity && relatedCity.relationship == 'ownCity')
+                    {
+                        if(newSortedList.indexOf(relatedCity.id) == -1)
+                        {
+                            newSortedList.push(relatedCity.id);
+                        }
+                    }
                 }
 
-                // add missing ownCity ids
-                for(var cityKey in relatedCityData)
-                {
-                    relatedCity = relatedCityData[cityKey];
-                    if(!relatedCity || relatedCity.relationship != 'ownCity') continue;
-                    if(newSortedList.indexOf(relatedCity.id) == -1) newSortedList.push(relatedCity.id);
+                // add missing ownCity ids of relatedCityData
+                forEach(relatedCityData, function(cityKey, relatedCity){
+                    if(relatedCity && relatedCity.relationship == 'ownCity')
+                    {
+                        if(newSortedList.indexOf(relatedCity.id) == -1)
+                        {
+                            newSortedList.push(relatedCity.id);
+                        }
+                    }
+                });
+
+                function onClickSortUp(that) {
+                    var tr = $(this).closest('tr'); // jshint ignore:line
+                    var ch = TweakCitySelect_sortingList.children();
+                    if(tr[0] === ch.first()[0]) ch.last().after(tr);
+                    else tr.prev().before(tr);
+                }
+
+                function onClickSortDown() {
+                    var tr = $(this).closest('tr'); // jshint ignore:line
+                    var ch = TweakCitySelect_sortingList.children();
+                    if(tr[0] === ch.last()[0]) ch.first().before(tr);
+                    else tr.next().after(tr);
                 }
 
                 // fill #TweakCitySelect_sortingList
-                var TweakCitySelect_sortingList = $('#TweakCitySelect_sortingList');
                 while(newSortedList.length)
                 {
-                    (function(cityId){
-                        modData.sortedList.push(cityId);
-                        TweakCitySelect_sortingList.append($('<tr>', {cityId:cityId})
-                            .append($('<td>')
-                                .append($('<button>', {'class':'up',click:function() {
-                                    var o = $('#TweakCitySelect_sortingList tr[cityId="'+cityId+'"]');
-                                    var c = TweakCitySelect_sortingList.children();
-                                    if(o[0] === c.first()[0]) c.last().after(o);
-                                    else o.prev().before(o);
-                                }}))
-                                .append($('<button>', {'class':'down',click:function() {
-                                    var o = $('#TweakCitySelect_sortingList tr[cityId="'+cityId+'"]');
-                                    var c = TweakCitySelect_sortingList.children();
-                                    if(o[0] === c.last()[0]) c.first().before(o);
-                                    else o.next().after(o);
-                                }}))
-                            ).append($('<td>', {html:relatedCityData['city_'+cityId].name}))
-                        );
-                    })(newSortedList.shift());
+                    var cityId = newSortedList.shift();
+                    modData.sortedList.push(cityId);
+                    TweakCitySelect_sortingList.append($('<tr>', {cityId:cityId})
+                        .append($('<td>')
+                            .append($('<button>', {'class':'up',    click:onClickSortUp}))
+                            .append($('<button>', {'class':'down',  click:onClickSortDown}))
+                        ).append($('<td>', {html:relatedCityData['city_'+cityId].name}))
+                    );
                 }
 
                 $('#js_TweakCitySelect_saveSettingsButton').click(function(){
-                    for(var id in checkboxes)
-                    {
+                    forEach(checkboxes, function(id){
                         modData[id] = $('#TweakCitySelect_settingCheckbox'+id+'Img').hasClass('checked');
-                    }
+                    });
                     modData.sortedList = [];
                     $('#TweakCitySelect_sortingList tr').each(function(){
                         modData.sortedList.push(parseInt($(this).attr('cityId')));
@@ -1058,14 +1086,12 @@
                 ikariam.controller.replaceDropdownMenus();
                 ikariam.controller.replaceCheckboxes();
                 $('#js_TweakAdvisors_saveSettingsBtn').click(function(){
-                    for(var modDataId in checkboxes)
-                    {
+                    forEach(checkboxes, function(modDataId){
                         modData[modDataId] = $('#TweakAdvisors_settingCheckbox'+modDataId+'Img').hasClass('checked');
-                    }
-                    for(var k in advisorImages)
-                    {
+                    });
+                    forEach(advisorImages, function(k){
                         modData.replaceAdvisorWith[k] = $('#js_TweakAdvisors_advisorSelect_'+k+'Options').val();
-                    }
+                    });
                     LS.save('TweakAdvisors', JSON.stringify(modData));
                     updateCSS();
                 });
@@ -1083,15 +1109,13 @@
                 function optionLeave(event) {
                     $img.fadeOut();
                 }
-                for(var k in advisorImages)
-                {
+                forEach(advisorImages, function(k, advisorImageL){
                     $('#dropDown_js_TweakAdvisors_advisorSelect_'+k+'Container ul').attr('advisor', k).mouseenter(optionEnter).mouseleave(optionLeave);
-                    for(var n in advisorImages[k])
-                    {
+                    forEach(advisorImageL, function(n){
                         $('#dropDown_js_TweakAdvisors_advisorSelect_'+k+'Container li[selectValue="'+n+'"]').mousemove(optionMove);
                         $('#dropDown_js_TweakAdvisors_advisorSelect_'+k+'Container li[selectValue="'+n+'"] a').mousemove(optionMove);
-                    }
-                }
+                    });
+                });
 
             });
         });
@@ -1337,13 +1361,16 @@
 
         function buildPositionsData(relatedCityData)
         {
-            for(var cityKey in relatedCityData)
-            {
-                var relatedCity = relatedCityData[cityKey];
-                if(!relatedCity || relatedCity.relationship != 'ownCity') continue;
-                if(!modData.customPositions[cityKey]) modData.customPositions[cityKey] = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18];
-            }
-            //TODO: cleanup deleted cities
+            forEach(relatedCityData, function(cityKey, relatedCity){
+                if(relatedCity && relatedCity.relationship == 'ownCity')
+                {
+                    if(!modData.customPositions[cityKey])
+                    {
+                        modData.customPositions[cityKey] = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18];
+                    }
+                }
+            });
+            // TODO: cleanup deleted cities
         }
 
         var locationHideStyleEle;
@@ -1362,8 +1389,8 @@
         // later updates after city change
         waitFor(function(){
             try{
-                var a = dataSetForView.relatedCityData;
-                var b = ikariam.backgroundView.screen.update;
+                jshintUnused = dataSetForView.relatedCityData;
+                jshintUnused = ikariam.backgroundView.screen.update;
                 return true;
             }catch(e){}
             return false;
@@ -1406,10 +1433,9 @@
                 $('#js_tab_CustomTowns_settingsWindow').click(showSettingsWindow);
                 $('#js_tab_CustomTowns_positionsWindow').click(showPositionsWindow);
                 $('#js_CustomTowns_saveSettingsButton').click(function(){
-                    for(var modDataId in checkboxes)
-                    {
+                    forEach(checkboxes, function(modDataId){
                         modData[modDataId] = $('#CustomTowns_settingCheckbox'+modDataId+'Img').hasClass('checked');
-                    }
+                    });
                     LS.save('CustomTowns', JSON.stringify(modData));
                     updateObjectsCSS();
                     updatePositionsCSS();
@@ -1478,14 +1504,19 @@
 
             function updateWorkingPositions() {
                 workingConfirmTownChange = false;
-                for(var i in buildingButtons) buildingButtons[i].attr('class', 'button_building empty').attr('title', '');
+                forEach(buildingButtons, function(i){
+                    buildingButtons[i].attr('class', 'button_building empty').attr('title', '');
+                });
                 var cityId = parseInt($('#js_CustomTowns_citySelectOptions').val());
                 var cityKey = 'city_'+cityId;
                 if(!modData.customPositions[cityKey]) return;
                 workingCityKey = cityKey;
                 workingPositionAliases = (function(p){
                     var l=[];
-                    for(var i=0; i<=18; i++) l[i]=(typeof p[i] !== null) ? p[i] : i;
+                    for(var i=0; i<=18; i++)
+                    {
+                        l[i]=(typeof p[i] !== null) ? p[i] : i;
+                    }
                     return l;
                 })(modData.customPositions[cityKey]);
                 $.ajax({
@@ -1621,8 +1652,7 @@
             //$('ul.resources li').not('#cityResources ul li').each(function(i){
             $('#buildingUpgrade ul.resources li').each(function(i){
                 var t=$(this);
-                for(var r in res)
-                {
+                forEach(res, function(r){
                     if(t.hasClass(r))
                     {
                         var req = parseInt(t.html().replace(/\D+/g,''));
@@ -1646,10 +1676,9 @@
                         }
                         return;
                     }
-                }
+                });
             });
         }
-
 
         waitFor(function(){
             try{return ikariam.controller;}catch(e){}
@@ -1658,8 +1687,8 @@
             if(!n || n===null) return;
             if(n.ajaxResponder===null){n.ajaxResponder=ikariam.getClass(ajax.Responder);}
             hookFunction(n.ajaxResponder, 'changeView', changeViewUpdate);
+            changeViewUpdate();
         }, 5000, 33);
-
 
         IkaTweaks.addSidebarButton('{str_TweakResources_Name}', function(){
             var checkboxes = {
@@ -1678,10 +1707,9 @@
                 $('#TweakResources_settingsTable tr').not(':even').addClass('alt');
                 ikariam.controller.replaceCheckboxes();
                 $('#js_TweakResources_saveSettingsButton').click(function(){
-                    for(var modDataId in checkboxes)
-                    {
+                    forEach(checkboxes, function(modDataId){
                         modData[modDataId] = $('#TweakResources_settingCheckbox'+modDataId+'Img').hasClass('checked');
-                    }
+                    });
                     LS.save('TweakResources', JSON.stringify(modData));
                 });
             });
@@ -1876,7 +1904,7 @@
         'str_ToGitHubRepoText'  : 'IkaTweaks @ GitHub',
 
         'str_IkaTweaks_aboutText2'  : 'Questions, ideas, bugs oder complaints? Email me at <span id="myEmail"></span> or visit me at: ',
-        'str_IkaTweaks_aboutCredit1': 'The used OnePiece images can be found on: <a id="creditUrl1"></a>', 
+        'str_IkaTweaks_aboutCredit1': 'The used OnePiece images can be found on: <a id="creditUrl1"></a>',
 
         // -- TweakCitySelect
         'str_TweakCitySelect_Name'                  : 'CitySelect',
@@ -1974,7 +2002,7 @@
         'str_ToOpenUserJSText'  : 'IkaTweaks @ OpenUserJS',
         'str_ToGitHubRepoText'  : 'IkaTweaks @ GitHub',
         'str_IkaTweaks_aboutText2'  : 'Fragen, Ideen, Fehler gefunden oder eine Beschwerde? Einfach eine Email an <span id="myEmail"></span> oder besuche mich auf: ',
-        'str_IkaTweaks_aboutCredit1': 'Die hier benutzten OnePiece Bilder sind von: <a id="creditUrl1"></a>', 
+        'str_IkaTweaks_aboutCredit1': 'Die hier benutzten OnePiece Bilder sind von: <a id="creditUrl1"></a>',
 
         // -- TweakCitySelect
         'str_TweakCitySelect_Name'                  : 'CitySelect',
