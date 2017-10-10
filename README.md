@@ -10,7 +10,7 @@
 
 IkaTweaks is currently available in German and English.
 If you want to help me localizing take a look at:
-[https://github.com/YveOne/Userscript-IkaTweaks/tree/master/languages](https://github.com/YveOne/Userscript-IkaTweaks/tree/master/languages)
+[https://github.com/YveOne/Userscript-IkaTweaks/tree/master/languages](https://github.com/YveOne/Userscript-IkaTweaks/tree/master/languages) 
 (Or just look at the bottom of the sourcecode)
 
 ### Previews:
