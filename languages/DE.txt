@@ -64,7 +64,7 @@
         'str_CustomTowns_Info'                    : 'Verstecke Premium-Objekte oder positionier Gebäude neu',
         'str_CustomTowns_tabSettings'             : 'Städte',
         'str_CustomTowns_tabPositions'            : 'Gebäude-Positionen',
-        'str_CustomTowns_customPositionsDisabled' : 'Aktiviere zuerst die nötige Option',
+        'str_CustomTowns_customPositionsDisabled' : 'Aktiviere zuerst die Option "Eigene Gebäude-Positionen"',
         'str_CustomTowns_confirmSaveChanged'      : 'Geänderte Positionen speichern?',
         'str_CustomTowns_hideFlyingShop'          : 'Verstecke fliegendes Premium-Schiff',
         'str_CustomTowns_hideDailyTasks'          : 'Verstecke tägliche Aufgaben',
@@ -75,7 +75,7 @@
         'str_CustomTowns_hideLockedPosition'      : 'Verstecke gesperrten Bauplatz',
         'str_CustomTowns_DragDropHint'            : '<i>(Ändere die Positionen der Gebäude per Drag&Drop)</i>',
         'str_CustomTowns_restrictedPosition'      : 'Kann dort nicht platziert werden',
-        'str_CustomTowns_useCustomPositions'      : 'Veränderte Gebäude-Positionen',
+        'str_CustomTowns_useCustomPositions'      : 'Eigene Gebäude-Positionen',
         'str_CustomTowns_SavePositionsButtonText' : 'Positionen speichern',
 
         // -- TweakResource
