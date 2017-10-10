@@ -25,7 +25,7 @@
         'str_ToGitHubRepoText'  : 'IkaTweaks @ GitHub',
 
         'str_IkaTweaks_aboutText2'  : 'Questions, ideas, bugs oder complaints? Email me at <span id="myEmail"></span> or visit me at: ',
-        'str_IkaTweaks_aboutCredit1': 'The used OnePiece images can be found on: <a id="creditUrl1"></a>', 
+        'str_IkaTweaks_aboutCredit1': 'The used OnePiece images can be found on: <a id="creditUrl1"></a>',
 
         // -- TweakCitySelect
         'str_TweakCitySelect_Name'                  : 'CitySelect',
@@ -34,6 +34,7 @@
         'str_TweakCitySelect_showTradegoods'        : 'Show Tradegoods',
         'str_TweakCitySelect_highlightSelected'     : 'Highlight selected city',
         'str_TweakCitySelect_sortList'              : 'Use custom sorting',
+        'str_TweakCitySelect_useGetMethod'          : 'Use GET method instead of POST',
 
         // -- TweakAdvisors
         'str_TweakAdvisors_Name'                    : 'Advisors',
@@ -63,7 +64,7 @@
         'str_CustomTowns_Name'                    : 'CustomTowns',
         'str_CustomTowns_Info'                    : 'Hide premium buildings or re-position your town buildings',
         'str_CustomTowns_tabSettings'             : 'Towns',
-        'str_CustomTowns_tabPositions'            : 'Buildings',
+        'str_CustomTowns_tabPositions'            : 'Building positions',
         'str_CustomTowns_customPositionsDisabled' : 'Enable custom positions first',
         'str_CustomTowns_confirmSaveChanged'      : 'Save changed positions?',
         'str_CustomTowns_hideFlyingShop'          : 'Hide flying premium shop',
@@ -72,6 +73,7 @@
         'str_CustomTowns_hideCapitalBackground'   : 'No custom background for capital',
         'str_CustomTowns_hideCinema'              : 'Hide Cinema',
         'str_CustomTowns_hidePirateFortress'      : 'Hide pirate fortress',
+        'str_CustomTowns_hideLockedPosition'      : 'Hide locked position',
         'str_CustomTowns_DragDropHint'            : '<i>(Change positions by drag&drop them onto each other)</i>',
         'str_CustomTowns_restrictedPosition'      : 'Can\'t be placed there',
         'str_CustomTowns_useCustomPositions'      : 'Custom building positions',
@@ -81,6 +83,7 @@
         'str_TweakResources_Name'                   : 'Resources',
         'str_TweakResources_Info'                   : 'Shows missing resources',
         'str_TweakResources_showMissing'            : 'Show missing resources',
+        'str_TweakResources_showRemaining'          : 'Show remaining resources',
 
         // -- Updatechecker
         'str_UpdateChecker_Name'                    : 'UpdateChecker',
