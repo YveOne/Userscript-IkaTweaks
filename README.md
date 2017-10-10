@@ -26,3 +26,4 @@ If you want to help me localizing take a look at:
 ![](https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/versions/version1.3.png "")
 ![](https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/versions/version1.4.png "")
 ![](https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/versions/version1.5.png "")
+![](https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/versions/version1.6.png "")
