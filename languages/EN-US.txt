@@ -24,7 +24,7 @@
         'str_ToOpenUserJSText'  : 'IkaTweaks @ OpenUserJS',
         'str_ToGitHubRepoText'  : 'IkaTweaks @ GitHub',
 
-        'str_IkaTweaks_aboutText2'  : 'Questions, ideas, bugs oder complaints? Email me at <span id="myEmail"></span> or visit me at: ',
+        'str_IkaTweaks_aboutText2'  : 'Questions, ideas, bugs or complaints? Email me at <span id="myEmail"></span> or visit me at: ',
         'str_IkaTweaks_aboutCredit1': 'The used OnePiece images can be found on: <a id="creditUrl1"></a>',
 
         // -- TweakCitySelect
