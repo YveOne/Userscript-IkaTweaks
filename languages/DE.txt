@@ -33,7 +33,7 @@
         'str_TweakCitySelect_showTradegoods'        : 'Zeige Luxusgüter',
         'str_TweakCitySelect_highlightSelected'     : 'Ausgewählte Stadt hervorheben',
         'str_TweakCitySelect_sortList'              : 'Eigene Reihenfolge',
-        'str_TweakCitySelect_useGetMethod'          : 'Benutze GET anstelle von POST',
+        'str_TweakCitySelect_sortEverywhere'        : 'Eigene Reihenfolge überall benutzen (Palast, Museum, ...)',
 
         // -- TweakAdvisors
         'str_TweakAdvisors_Name'                    : 'Berater',
@@ -73,6 +73,7 @@
         'str_CustomTowns_hideCinema'              : 'Verstecke Projections-Theater',
         'str_CustomTowns_hidePirateFortress'      : 'Verstecke Piratenfestung',
         'str_CustomTowns_hideLockedPosition'      : 'Verstecke gesperrten Bauplatz',
+        'str_CustomTowns_NoAnimPointerEvents'     : 'Ignoriere Maus-Events für Animationen/Walker (deaktiviert Sprechblasen)',
         'str_CustomTowns_DragDropHint'            : '<i>(Ändere die Positionen der Gebäude per Drag&Drop)</i>',
         'str_CustomTowns_restrictedPosition'      : 'Kann dort nicht platziert werden',
         'str_CustomTowns_useCustomPositions'      : 'Eigene Gebäude-Positionen',

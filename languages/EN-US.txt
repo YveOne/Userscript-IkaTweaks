@@ -34,7 +34,7 @@
         'str_TweakCitySelect_showTradegoods'        : 'Show Tradegoods',
         'str_TweakCitySelect_highlightSelected'     : 'Highlight selected city',
         'str_TweakCitySelect_sortList'              : 'Use custom sorting',
-        'str_TweakCitySelect_useGetMethod'          : 'Use GET method instead of POST',
+        'str_TweakCitySelect_sortEverywhere'        : 'Use custom sorting everywhere (palace, museum, ...)',
 
         // -- TweakAdvisors
         'str_TweakAdvisors_Name'                    : 'Advisors',
@@ -74,6 +74,7 @@
         'str_CustomTowns_hideCinema'              : 'Hide Cinema',
         'str_CustomTowns_hidePirateFortress'      : 'Hide pirate fortress',
         'str_CustomTowns_hideLockedPosition'      : 'Hide locked position',
+        'str_CustomTowns_NoAnimPointerEvents'     : 'Ignore mouse events for animations/walkers (will disable walker bubbles)',
         'str_CustomTowns_DragDropHint'            : '<i>(Change positions by drag&drop them onto each other)</i>',
         'str_CustomTowns_restrictedPosition'      : 'Can\'t be placed there',
         'str_CustomTowns_useCustomPositions'      : 'Use custom building positions',
