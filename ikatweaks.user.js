@@ -6,7 +6,7 @@
 // @description     Improvements for Ikariam
 // @version         1.6
 // @author          Yvonne P.
-// @license         https://opensource.org/licenses/MIT
+// @license         MIT; https://opensource.org/licenses/MIT
 // @icon            http://de.ikariam.gameforge.com/favicon.ico
 // @namespace       YveOne
 // @include         /^https?:\/\/s\d+-\w+\.ikariam\.gameforge\.com.*?$/
