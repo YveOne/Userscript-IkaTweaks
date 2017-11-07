@@ -4,9 +4,9 @@
 //
 // @name            IkaTweaks
 // @description     Improvements for Ikariam
-// @version         1.6
+// @version         1.7
 // @author          Yvonne P.
-// @license         https://opensource.org/licenses/MIT
+// @license         MIT; https://opensource.org/licenses/MIT
 // @icon            http://de.ikariam.gameforge.com/favicon.ico
 // @namespace       YveOne
 // @include         /^https?:\/\/s\d+-\w+\.ikariam\.gameforge\.com.*?$/
@@ -50,7 +50,7 @@
     function waitFor(cond, func, tOut, sleep)   {sleep=sleep||33;var tEnd=tOut?(new Date()).getTime()+tOut:null;var ret,w4=function(){ret=cond();if(ret){return func(ret);}if(tEnd && tEnd<(new Date()).getTime()){return func(false);}setTimeout(w4,sleep);};w4();}
     function removeElement(el)                  {try{return el.parentNode.removeChild(el);}catch(e){}return null;}
 
-    //(c) Yvonne P.
+    // v3 (c) Yvonne P.
     function LocalStorageHandler(tag) {
         var data = JSON.parse(localStorage.getItem(tag)) || {
             storedKeys : {},
@@ -97,12 +97,17 @@
         this.data = function() {
             return JSON.parse(JSON.stringify(data));
         };
-        this.clear = function() {
-            var s = ['Remove following keys?'];
-            forEach(data.storedKeys, function(k){
-                s.push(' "'+k+'"');
-            });
-            if(confirm(s.join("\n")))
+        this.clear = function(t) {
+            var b = true;
+            if(typeof t == 'string')
+            {
+                var s = [t];
+                forEach(data.storedKeys, function(k){
+                    s.push(' "'+k+'"');
+                });
+                b = confirm(s.join("\n"));
+            }
+            if(b)
             {
                 forEach(data.storedKeys, function(k){
                     localStorage.removeItem(k);
@@ -114,7 +119,7 @@
         };
     }
 
-    //(c) Yvonne P.
+    // v2 (c) Yvonne P.
     function EasyTemplates() {
         var that = this;
         var tplList = {};
@@ -147,7 +152,7 @@
         };
     }
 
-    //(c) Yvonne P.
+    // v3 (c) Yvonne P.
     function LanguageHandler(useLocal, baseLocal)
     {
         var str = {};
@@ -172,16 +177,22 @@
             ctr[c] = l;
             if(c == baseLocal)
             {
-                forEach(n, function(k){
-                    str[k] = (typeof str[k]=='string') ? str[k] : n[k].toString();
+                forEach(n, function(k, v){
+                    if(v !== null)
+                    {
+                        str[k] = (typeof str[k]=='string') ? str[k] : v.toString();
+                    }
                 });
             }
             else
             {
                 if(c == useLocal)
-                    {
-                    forEach(n, function(k){
-                        str[k] = n[k].toString();
+                {
+                    forEach(n, function(k, v){
+                        if(v !== null)
+                        {
+                            str[k] = v.toString();
+                        }
                     });
                 }
             }
@@ -410,7 +421,7 @@
                 <div class="content">
                     <table class="table01"><tbody>
                         <tr>
-                            <th style="width:150px;"><input id="js_IkaTweaks_clearStorageButton" style="width:150px;" type="button" class="button" value="{str_ClearStorageText}" /></th>
+                            <th style="min-width:150px;"><input id="js_IkaTweaks_clearStorageButton" style="min-width:150px;" type="button" class="button" value="{str_ClearStorageText}" /></th>
                             <th class="left">{str_ClearStorageInfo}</th>
                         </tr>
                     </tbody></table>
@@ -424,6 +435,11 @@
                         <tr>
                             <td>
                                 {str_IkaTweaks_aboutCredit1}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                {str_IkaTweaks_aboutCredit2}
                             </td>
                         </tr>
                     </tbody></table>
@@ -572,7 +588,6 @@
     IkaTweaks.setModule('TweakCitySelect', '{str_TweakCitySelect_Name}', '{str_TweakCitySelect_Info}', function(){
 
         var modData = jsonDecode(LS.load('TweakCitySelect'), {});
-        if(typeof modData.useGetMethod      == 'undefined') modData.useGetMethod        = true;
         if(typeof modData.hideCoords        == 'undefined') modData.hideCoords          = false;
         if(typeof modData.showTradegoods    == 'undefined') modData.showTradegoods      = true;
         if(typeof modData.highlightSelected == 'undefined') modData.highlightSelected   = true;
@@ -582,22 +597,32 @@
 
         // afterI = after what child ele append others?
         // chields = {cityId:listEle, cityId:listEle, ...}
-        function sortElementChilds(parent, afterI, childs) {
-            var relatedCity, relatedCityData = ikariam.model.relatedCityData;
-            var sortedList = modData.sortedList;
-            var sortedListI = sortedList.length; // start with last
-            var ch;
-            // from last to first
-            while(sortedListI--)
+        function sortElementChilds(parent, childs, afterI, altRows) {
+            var sortedList = modData.sortedList.slice(0), ch;
+            while(sortedList.length)
             {
-                relatedCity = relatedCityData['city_'+sortedList[sortedListI]];
-                if(relatedCity && relatedCity.relationship == 'ownCity')
+                ch = childs[sortedList.pop()]; // from last, to fist
+                if(ch)
                 {
-                    ch = childs[relatedCity.id];
+                    // remove element from DOM and append again at top
+                    parent.children().eq(afterI).before(ch);
+                }
+            }
+            if(altRows)
+            {
+                sortedList = modData.sortedList.slice(0);
+                var alt = false;
+                while(sortedList.length)
+                {
+                    ch = childs[sortedList.shift()]; // but now from first to last
                     if(ch)
                     {
-                        // move element to first place
-                        parent.children().eq(afterI).before(ch);
+                        ch.removeClass('alt');
+                        if(alt)
+                        {
+                            ch.addClass('alt');
+                        }
+                        alt = !alt;
                     }
                 }
             }
@@ -654,7 +679,7 @@
             $('#dropDown_js_citySelectContainer ul li').each(function(i){
                 childs[$(this).attr('selectvalue').match(/\d+/)] = $(this);
             });
-            sortElementChilds(parent, 0, childs);
+            sortElementChilds(parent, childs, 0);
             // refresh classes for :first and :last
             (function(li){
                 li.removeClass('first-child');
@@ -682,34 +707,46 @@
                 }
             });
 
-            var childs = {};
+            var parent, childs = {};
             if(document.getElementById('palace_c'))
             {
-                $('#palace_c table:eq(1) tr:gt(0)').each(function(i){
+                parent = $('#palace_c table:eq(1) tbody');
+                parent.find('tr:gt(0)').each(function(i){
                     childs[unsortedIds[i]] = $(this);
                 });
-                return sortElementChilds($('#palace_c table:eq(1) tbody'), 1, childs);
+                return sortElementChilds(parent, childs, 1, true);
+            }
+            if(document.getElementById('palaceColony_c'))
+            {
+                parent = $('#palaceColony_c table:eq(0) tbody');
+                parent.find('tr').each(function(i){
+                    childs[unsortedIds[i]] = $(this);
+                });
+                return sortElementChilds(parent, childs, 0);
             }
             if(document.getElementById('culturalPossessions_assign_c'))
             {
-                $('#culturalPossessions_assign_c ul:eq(1) li').each(function(i){
+                parent = $('#culturalPossessions_assign_c ul:eq(1)');
+                parent.find('li').each(function(i){
                     childs[unsortedIds[i]] = $(this);
                 });
-                return sortElementChilds($('#culturalPossessions_assign_c ul:eq(1)'), 0, childs);
+                return sortElementChilds(parent, childs, 0);
             }
             if(document.getElementById('finances_c'))
             {
-                $('#finances_c table:eq(1) tr:gt(0)').each(function(i){
+                parent = $('#finances_c table:eq(1) tbody');
+                parent.find('tr:gt(0)').each(function(i){
                     childs[unsortedIds[i]] = $(this);
                 });
-                return sortElementChilds($('#finances_c table:eq(1) tbody'), 1, childs);
+                return sortElementChilds(parent, childs, 1, true);
             }
             if(document.getElementById('port_c'))
             {
-                $('#port_c ul.cities li').each(function(i){
+                parent = $('#port_c ul.cities');
+                parent.find('li').each(function(i){
                     childs[$(this).attr('id').match(/\d+/)] = $(this);
                 });
-                return sortElementChilds($('#port_c ul.cities'), 0, childs);
+                return sortElementChilds(parent, childs, 0);
             }
         }
 
@@ -1350,7 +1387,9 @@
 
         var cssObjectsElement;
         function updateObjectsCSS() {
-            if(document.querySelector('body').id != 'city') return;
+            var body = document.querySelector('body');
+            if(!body || body.id != 'city') return;
+
             var css = [];
             if(modData.hideFlyingShop)        css.push('#city #cityFlyingShopContainer { display: none; }');
             if(modData.hideDailyTasks)        css.push('#city #cityDailyTasks          { display: none; }');
@@ -1971,6 +2010,221 @@
 
 
 
+/*
+
+
+
+
+    var reactionTimeout = 60000;
+    var fadeOutTime = 5000;
+    var fadeInTime = 300;
+
+    var ids = [
+        '#eventDiv',
+        '#js_viewAllyMessage',
+        '#js_viewCityMenu',
+        '#js_viewFriends',
+        '#footer',
+        '#topnavi',
+        '#advisors',
+        '#breadcrumbs',
+        '#avatarNotes:visible',
+        '#chatWindow:visible',
+        '#popupMessage',
+        '#GF_toolbar',
+        '.templateView',
+        '#sidebar',
+        '#locations .timetofinish:not(.invisible)',
+        '#js_viewChat',
+    ];
+
+    var lastFadeTime = 0;
+    var fadedOut = false;
+    function fadeOut(force) {
+        if(!fadedOut || force)
+        {
+            fadedOut = true;
+
+            var fadeTime = (force) ? 0 : Math.min(fadeOutTime, (new Date()).getTime() - lastFadeTime);
+            lastFadeTime = (force) ? 0 : (new Date()).getTime();
+            var l = ids.length;
+            for(var i=0; i<l; i++)
+            {
+                $(ids[i]).fadeOut(fadeTime);
+            }
+            $('#IkaTweaksAlertOverlay').fadeIn(fadeTime);
+        }
+    }
+    function fadeIn(force) {
+        if(fadedOut || force)
+        {
+            fadedOut = false;
+
+            var fadeTime = (force) ? 0 : Math.min(fadeInTime, (new Date()).getTime() - lastFadeTime);
+            lastFadeTime = (force) ? 0 : (new Date()).getTime();
+            var l = ids.length;
+            for(var i=0; i<l; i++)
+            {
+                $(ids[i]).stop().fadeIn(fadeTime);
+            }
+            $('#IkaTweaksAlertOverlay').fadeOut(fadeTime);
+        }
+    }
+
+    var winActive = true;
+    var lastMove = (new Date()).getTime();
+    var i = setInterval(function(){
+        if(!winActive)
+        {
+            lastMove = (new Date()).getTime()
+        }
+        if((lastMove+reactionTimeout) < (new Date()).getTime())
+        {
+            fadeOut();
+        }
+        else
+        {
+            fadeIn();
+        }
+    }, 333);
+
+    waitFor(function(){
+        return (typeof $ != "undefined");
+    }, function(jQ){
+        if(!jQ) return;
+        $(window).blur(function(){
+            winActive = false;
+        });
+        $(window).focus(function(){
+            winActive = true;
+            fadeIn(true);
+        });
+        $(document).on('mousemove', function(){
+            lastMove = (new Date()).getTime();
+        });
+    }, 3000, 333);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    var alertDuration = 0.5;
+    var activeDuration = 1;
+
+    var cssElement;
+    function updateCSS() {
+        var css = [];
+
+        var advisors = [
+            'js_GlobalMenu_cities',
+            'js_GlobalMenu_military',
+            'js_GlobalMenu_research',
+            'js_GlobalMenu_diplomacy',
+        ];
+
+        var isActive = false;
+        var isAlert = false;
+        var advisor;
+        while(advisors.length)
+        {
+            advisor  = $('#'+advisors.shift());
+            isAlert  = isAlert  || (advisor.hasClass('normalalert')  || advisor.hasClass('premiumalert'));
+            isActive = isActive || (advisor.hasClass('normalactive') || advisor.hasClass('premiumactive'));
+        }
+
+        var duration;
+        var colorFrom;
+        var colorTo;
+        if(isAlert)
+        {
+            duration    = alertDuration;
+            colorFrom   = 'rgba(255,48,0,0.1)';
+            colorTo     = 'rgba(255,48,0,1.0)';
+        }
+        else
+        {
+            if(isActive)
+            {
+                duration    = activeDuration;
+                colorFrom   = 'rgba(255,252,200,0.0)';
+                colorTo     = 'rgba(255,252,200,1.0)';
+            }
+        }
+
+        var appendAnim = 'animation: none;';
+        if(duration)
+        {
+            appendAnim = `
+                animation: IkaTweaksAlertOverlayAnimation `+duration+`s infinite;
+                animation-direction: normal;
+            `;
+        }
+
+        css.push(`
+            #IkaTweaksAlertOverlay {
+                `+appendAnim+`
+                pointer-events:none;position:absolute;top:0px;left:0px;width:100%;height:100%;z-index:999999;
+            }
+        `);
+
+        if(duration)
+        {
+            css.push('@keyframes IkaTweaksAlertOverlayAnimation {');
+            css.push('0% {box-shadow: inset 0 0 200px 100px '+colorFrom+';}');
+            css.push('50% {box-shadow: inset 0 0 200px 100px '+colorTo+';}');
+            css.push('100% {box-shadow: inset 0 0 200px 100px '+colorFrom+';}');
+            css.push('}');
+        }
+        css = css.join("\n");
+
+        if(cssElement) removeElement(cssElement);
+        IkaTweaks.injectCSS(css, function(el){cssElement=el;});
+    }
+
+
+
+
+
+
+    waitFor(function(){
+        return (typeof $ != "undefined");
+    }, function(jQ){
+        if(!jQ) return;
+
+
+
+        waitFor(function(){
+            try{
+                return ikariam.controller;
+            }catch(e){}
+            return false;
+        }, function(n){
+            if(!n || n===null) return;
+            if(n.ajaxResponder===null){n.ajaxResponder=ikariam.getClass(ajax.Responder);}
+            hookFunction(n.ajaxResponder, 'updateGlobalData', function(){
+                window.setTimeout(updateCSS, 333);
+            });
+            updateCSS();
+
+            var div = $('<div id="IkaTweaksAlertOverlay" style="display:none;"></div>');
+            $('#container').append(div);
+        }, 5000, 33);
+
+    }, 3000, 333);
+
+*/
+
+
 
 
 
@@ -2004,6 +2258,7 @@
 
         'str_IkaTweaks_aboutText2'  : 'Questions, ideas, bugs or complaints? Email me at <span id="myEmail"></span> or visit me at: ',
         'str_IkaTweaks_aboutCredit1': 'The used OnePiece images can be found on: <a id="creditUrl1"></a>',
+        'str_IkaTweaks_aboutCredit2': 'Thanks to xarisgr for greek translation',
 
         // -- TweakCitySelect
         'str_TweakCitySelect_Name'                  : 'CitySelect',
@@ -2104,6 +2359,7 @@
         'str_ToGitHubRepoText'  : 'IkaTweaks @ GitHub',
         'str_IkaTweaks_aboutText2'  : 'Fragen, Ideen, Fehler gefunden oder eine Beschwerde? Einfach eine Email an <span id="myEmail"></span> oder besuche mich auf: ',
         'str_IkaTweaks_aboutCredit1': 'Die hier benutzten OnePiece Bilder sind von: <a id="creditUrl1"></a>',
+        'str_IkaTweaks_aboutCredit2': null,
 
         // -- TweakCitySelect
         'str_TweakCitySelect_Name'                  : 'CitySelect',
@@ -2173,6 +2429,108 @@
         'str_UpdateChecker_versionUpToDate'         : 'Version ist aktuell',
         'str_UpdateChecker_HowDowsThisWork'         : 'Wie dies funktioniert: IkaTweaks lädt zu Deiner eigenen Sicherheit kein externes Script, sondern ein kleines Bild von GitHub, mit dessen Breite und Höhe überprüft wird ob eine neue Version verfügbar ist ;)',
         'str_UpdateChecker_linksHeader'             : 'Die neuste Version gibt es immer hier:',
+
+    });
+
+    LANG('gr', 'ελληνικά', {
+
+        'str_IkaTweaks'             : 'IkaTweaks',
+        'str_IkaTweaks_menu'        : 'IkaTweaks Μενού',
+        'str_IkaTweaks_tabModules'  : 'Ενότητες',
+        'str_IkaTweaks_tabAbout'    : 'Δημιουργοί',
+
+        'str_Settings'          : 'Ρυθμίσεις',
+        'str_Modules'           : 'Ενότητες',
+        'str_Enabled'           : 'Ενεργοποίηση',
+        'str_Name'              : 'Όνομασία',
+        'str_Description'       : 'Περιγραφή',
+        'str_SaveSettings'      : 'Αποθήκευση Ρυθμίσεων!',
+        'str_ModuleSettings'    : 'Ρυθμίσεις Ενοτήτων',
+
+        'str_SaveLanguageButtonText'    : 'Επιλογή Γλώσσας',
+
+        'str_IkaTweaks_aboutHeader'     : 'Σχετικά με',
+        'str_IkaTweaks_creditsHeader'   : 'Ευχαριστίες',
+
+        'str_ClearStorageText'  : 'Εκκαθάριση προσωρινής μνήμης',
+        'str_ClearStorageInfo'  : 'Διαγραφή Δεδομένων IkaTweaks απο το πρόγραμμα περιήγησης',
+
+        'str_ToGreasyForkText'  : 'IkaTweaks @ Greasy Fork',
+        'str_ToOpenUserJSText'  : 'IkaTweaks @ OpenUserJS',
+        'str_ToGitHubRepoText'  : 'IkaTweaks @ GitHub',
+
+        'str_IkaTweaks_aboutText2'  : 'Για οποιαδήποτε Προτάσεις,ιδέες.προβλήματα? Email <span id="myEmail"></span> η επισκεφτείτε στο: ',
+        'str_IkaTweaks_aboutCredit1': 'Οι εικόνες OnePiece που χρησιμοποιούνται μπορούν να βρεθούν στο: <a id="creditUrl1"></a>',
+        'str_IkaTweaks_aboutCredit2': null,
+
+        // -- TweakCitySelect
+        'str_TweakCitySelect_Name'                  : 'Επιλογή πόλης',
+        'str_TweakCitySelect_Info'                  : 'Επεκτείνει το αναπτυσσόμενο μενού της πόλης σας',
+        'str_TweakCitySelect_hideCoords'            : 'Απόκρυψη Coords',
+        'str_TweakCitySelect_showTradegoods'        : 'Δείξε τα ανταλάξιμα προιόντα σου',
+        'str_TweakCitySelect_highlightSelected'     : 'Επισημάνετε την επιλεγμένη πόλη',
+        'str_TweakCitySelect_sortList'              : 'Προσαρμοσμένη ταξινόμηση',
+        'str_TweakCitySelect_sortEverywhere'        : null,
+
+        // -- TweakAdvisors
+        'str_TweakAdvisors_Name'                    : 'Σύμβουλοι',
+        'str_TweakAdvisors_Info'                    : 'Αλλαγή εμφάνισης συμβούλων',
+        'str_TweakAdvisors_hidePremiumButtons'      : 'Απόκρυψη premium κουμπιών',
+        'str_TweakAdvisors_replaceAdvisors'         : 'Αντικατάσταση Συμβούλων',
+        'str_TweakAdvisors_cities'                  : 'Πόλεις',
+        'str_TweakAdvisors_military'                : 'Στρατός',
+        'str_TweakAdvisors_research'                : 'Έρευνα',
+        'str_TweakAdvisors_diplomacy'               : 'Διπλωματία',
+        'str_TweakAdvisors_maleMayor'               : 'Δήμαρχος',
+        'str_TweakAdvisors_malePremiumMayor'        : 'Δήμαρχος (premium)',
+        'str_TweakAdvisors_femaleMayor'             : 'Σύζυγος Δημάρχου',
+        'str_TweakAdvisors_femalePremiumMayor'      : 'Σύζυγος Δημάρχου (premium)',
+        'str_TweakAdvisors_maleGeneral'             : 'Γενικά',
+        'str_TweakAdvisors_malePremiumGeneral'      : 'Γενικά (premium)',
+        'str_TweakAdvisors_maleScientist'           : 'Επιστήμονες',
+        'str_TweakAdvisors_malePremiumScientist'    : 'Επιστήμονες (premium)',
+        'str_TweakAdvisors_maleDiplomat'            : 'Διπλωμάτης',
+        'str_TweakAdvisors_malePremiumDiplomat'     : 'Διπλωμάτης (premium)',
+        'str_TweakAdvisors_onePieceLuffy'           : 'Monkey D. Luffy (Ένα τεμάχιο)',
+        'str_TweakAdvisors_onePieceZoro'            : 'Roronoa Zoro (Ένα τεμάχιο)',
+        'str_TweakAdvisors_onePieceUsopp'           : 'Usopp (Ένα τεμάχιο)',
+        'str_TweakAdvisors_onePieceNami'            : 'Nami (Ένα τεμάχιο)',
+
+        // -- CustomTowns
+        'str_CustomTowns_Name'                    : 'Προσαρμοσμένες Πόλεις',
+        'str_CustomTowns_Info'                    : 'Κρύψε η μετακίνησε τα κτίρια της πόλης σου',
+        'str_CustomTowns_tabSettings'             : 'Πόλεις',
+        'str_CustomTowns_tabPositions'            : 'Κτίρια',
+        'str_CustomTowns_customPositionsDisabled' : 'Ενεργοποιήσε πρώτα τις προσαρμοσμένες θέσεις',
+        'str_CustomTowns_confirmSaveChanged'      : 'Αποθήκευση αλλαγμένων θέσεων?',
+        'str_CustomTowns_hideFlyingShop'          : 'Απόκρυψη ιπτάμενο κατάστημα',
+        'str_CustomTowns_hideDailyTasks'          : 'Απόκρυψη καθημερινών εργασιών',
+        'str_CustomTowns_hideAmbrosiaFountain'    : 'Απενεργοποίηση νέων επιλογών αγοράς Αμβροσίας',
+        'str_CustomTowns_hideCapitalBackground'   : null,
+        'str_CustomTowns_hideCinema'              : 'Απόκρυψη Θέατρου προβολών',
+        'str_CustomTowns_hidePirateFortress'      : 'Απόκρυψη κτιρίου Πειρατών',
+        'str_CustomTowns_hideLockedPosition'      : null,
+        'str_CustomTowns_NoAnimPointerEvents'     : null,
+        'str_CustomTowns_DragDropHint'            : '<i>(Άλλαξε θέση by drag&drop μεταξύ των κτιρίων)</i>',
+        'str_CustomTowns_restrictedPosition'      : 'Δέν μπορείς να τοποθετήσεις εδώ',
+        'str_CustomTowns_useCustomPositions'      : 'Προσαρμοσμένες θέσεις κτιρίου',
+        'str_CustomTowns_SavePositionsButtonText' : 'Αποθήκευση',
+
+        // -- TweakResource
+        'str_TweakResources_Name'                   : 'Πόροι',
+        'str_TweakResources_Info'                   : 'Εμφάνιση χαμένων πόρων',
+        'str_TweakResources_showMissing'            : 'Εμφάνιση ελειπών πόρων',
+        'str_TweakResources_showRemaining'          : null,
+
+        // -- Updatechecker
+        'str_UpdateChecker_Name'                    : 'Έλεγχος ενημέρωσης',
+        'str_UpdateChecker_Info'                    : 'Ελεγχος ενημέρωσης για το IkaTweaks',
+        'str_UpdateChecker_forceNow'                : 'Έλεγχος τώρα',
+        'str_UpdateChecker_lastResult'              : 'Τελευταίο αποτέλεσμα',
+        'str_UpdateChecker_newVersionAvailable'     : 'Νέα διαθέσιμη έκδοση',
+        'str_UpdateChecker_versionUpToDate'         : 'Δέν υπάρχει νέα έκδοση',
+        'str_UpdateChecker_HowDowsThisWork'         : 'Πώς λειτουργεί: Για τη δική σας ασφάλεια, το IkaTweaks δεν φορτώνει εξωτερικά σενάρια αλλά μια μικροσκοπική εικόνα από το GitHub . Και θα ελέγχει για νέα διαθέσιμη έκδοση;)',
+        'str_UpdateChecker_linksHeader'             : 'Εδώ θα υπάρχει μόνο η τελευταία ενημέρωση:',
 
     });
 
