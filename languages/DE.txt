@@ -1,4 +1,6 @@
 
+    LANG('de', 'Deutsch', {
+
         'str_IkaTweaks'             : 'IkaTweaks',
         'str_IkaTweaks_menu'        : 'IkaTweaks Menü',
         'str_IkaTweaks_tabModules'  : 'Module',
@@ -25,6 +27,7 @@
         'str_ToGitHubRepoText'  : 'IkaTweaks @ GitHub',
         'str_IkaTweaks_aboutText2'  : 'Fragen, Ideen, Fehler gefunden oder eine Beschwerde? Einfach eine Email an <span id="myEmail"></span> oder besuche mich auf: ',
         'str_IkaTweaks_aboutCredit1': 'Die hier benutzten OnePiece Bilder sind von: <a id="creditUrl1"></a>',
+        'str_IkaTweaks_aboutCredit2': null,
 
         // -- TweakCitySelect
         'str_TweakCitySelect_Name'                  : 'CitySelect',
@@ -94,3 +97,5 @@
         'str_UpdateChecker_versionUpToDate'         : 'Version ist aktuell',
         'str_UpdateChecker_HowDowsThisWork'         : 'Wie dies funktioniert: IkaTweaks lädt zu Deiner eigenen Sicherheit kein externes Script, sondern ein kleines Bild von GitHub, mit dessen Breite und Höhe überprüft wird ob eine neue Version verfügbar ist ;)',
         'str_UpdateChecker_linksHeader'             : 'Die neuste Version gibt es immer hier:',
+
+    });

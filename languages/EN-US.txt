@@ -1,4 +1,7 @@
 
+    LANG.alias('us', 'en');
+    LANG('en', 'English', {
+
         'str_IkaTweaks'             : 'IkaTweaks',
         'str_IkaTweaks_menu'        : 'IkaTweaks Menu',
         'str_IkaTweaks_tabModules'  : 'Modules',
@@ -26,6 +29,7 @@
 
         'str_IkaTweaks_aboutText2'  : 'Questions, ideas, bugs or complaints? Email me at <span id="myEmail"></span> or visit me at: ',
         'str_IkaTweaks_aboutCredit1': 'The used OnePiece images can be found on: <a id="creditUrl1"></a>',
+        'str_IkaTweaks_aboutCredit2': 'Thanks to xarisgr for greek translation',
 
         // -- TweakCitySelect
         'str_TweakCitySelect_Name'                  : 'CitySelect',
@@ -95,3 +99,5 @@
         'str_UpdateChecker_versionUpToDate'         : 'Version is up to date',
         'str_UpdateChecker_HowDowsThisWork'         : 'How does this work: For your own safety IkaTweaks does NOT load any extern scripts but a tiny image from GitHub. With its weight and height it will be checked if a new version is available or not ;)',
         'str_UpdateChecker_linksHeader'             : 'Here you will get always the newest version:',
+
+    });
