@@ -2,7 +2,7 @@
     LANG('de', 'Deutsch', {
 
         'str_IkaTweaks'             : 'IkaTweaks',
-        'str_IkaTweaks_menu'        : 'IkaTweaks Menü',
+        'str_IkaTweaks_menu'        : 'IkaTweaks MenÃ¼',
         'str_IkaTweaks_tabModules'  : 'Module',
         'str_IkaTweaks_tabAbout'    : 'Info & Credits',
 
@@ -20,7 +20,7 @@
         'str_IkaTweaks_creditsHeader'   : 'Credits',
 
         'str_ClearStorageText'  : 'LocalStorage leeren',
-        'str_ClearStorageInfo'  : 'Hier können die gespeicherten Daten für IkaTweaks aus dem Browser gelöscht werden.',
+        'str_ClearStorageInfo'  : 'Hier kÃ¶nnen die gespeicherten Daten fÃ¼r IkaTweaks aus dem Browser gelÃ¶scht werden.',
 
         'str_ToGreasyForkText'  : 'IkaTweaks @ Greasy Fork',
         'str_ToOpenUserJSText'  : 'IkaTweaks @ OpenUserJS',
@@ -31,26 +31,26 @@
 
         // -- TweakCitySelect
         'str_TweakCitySelect_Name'                  : 'CitySelect',
-        'str_TweakCitySelect_Info'                  : 'Erweitert das Dropdown-Menü für die Städte',
+        'str_TweakCitySelect_Info'                  : 'Erweitert das Dropdown-MenÃ¼ fÃ¼r die StÃ¤dte',
         'str_TweakCitySelect_hideCoords'            : 'Keine Koordinaten',
-        'str_TweakCitySelect_showTradegoods'        : 'Zeige Luxusgüter',
-        'str_TweakCitySelect_highlightSelected'     : 'Ausgewählte Stadt hervorheben',
+        'str_TweakCitySelect_showTradegoods'        : 'Zeige LuxusgÃ¼ter',
+        'str_TweakCitySelect_highlightSelected'     : 'AusgewÃ¤hlte Stadt hervorheben',
         'str_TweakCitySelect_sortList'              : 'Eigene Reihenfolge',
-        'str_TweakCitySelect_sortEverywhere'        : 'Eigene Reihenfolge überall benutzen (Palast, Museum, ...)',
+        'str_TweakCitySelect_sortEverywhere'        : 'Eigene Reihenfolge Ã¼berall benutzen (Palast, Museum, ...)',
 
         // -- TweakAdvisors
         'str_TweakAdvisors_Name'                    : 'Berater',
-        'str_TweakAdvisors_Info'                    : 'Ändert das Aussehen der Berater',
+        'str_TweakAdvisors_Info'                    : 'Ã„ndert das Aussehen der Berater',
         'str_TweakAdvisors_hidePremiumButtons'      : 'Verstecke Premium-Buttons',
         'str_TweakAdvisors_replaceAdvisors'         : 'Berater ersetzen',
-        'str_TweakAdvisors_cities'                  : 'Städte',
-        'str_TweakAdvisors_military'                : 'Militär',
+        'str_TweakAdvisors_cities'                  : 'StÃ¤dte',
+        'str_TweakAdvisors_military'                : 'MilitÃ¤r',
         'str_TweakAdvisors_research'                : 'Forschung',
         'str_TweakAdvisors_diplomacy'               : 'Diplomatie',
-        'str_TweakAdvisors_maleMayor'               : 'Bürgermeister',
-        'str_TweakAdvisors_malePremiumMayor'        : 'Bürgermeister (Premium)',
-        'str_TweakAdvisors_femaleMayor'             : 'Frau des Bürgermeisters',
-        'str_TweakAdvisors_femalePremiumMayor'      : 'Frau des Bürgermeisters (Premium)',
+        'str_TweakAdvisors_maleMayor'               : 'BÃ¼rgermeister',
+        'str_TweakAdvisors_malePremiumMayor'        : 'BÃ¼rgermeister (Premium)',
+        'str_TweakAdvisors_femaleMayor'             : 'Frau des BÃ¼rgermeisters',
+        'str_TweakAdvisors_femalePremiumMayor'      : 'Frau des BÃ¼rgermeisters (Premium)',
         'str_TweakAdvisors_maleGeneral'             : 'General',
         'str_TweakAdvisors_malePremiumGeneral'      : 'General (Premium)',
         'str_TweakAdvisors_maleScientist'           : 'Wissenschaftler',
@@ -64,38 +64,38 @@
 
         // -- CustomTowns
         'str_CustomTowns_Name'                    : 'CustomTowns',
-        'str_CustomTowns_Info'                    : 'Verstecke Premium-Objekte oder positionier Gebäude neu',
-        'str_CustomTowns_tabSettings'             : 'Städte',
-        'str_CustomTowns_tabPositions'            : 'Gebäude-Positionen',
-        'str_CustomTowns_customPositionsDisabled' : 'Aktiviere zuerst die Option "Eigene Gebäude-Positionen"',
-        'str_CustomTowns_confirmSaveChanged'      : 'Geänderte Positionen speichern?',
+        'str_CustomTowns_Info'                    : 'Verstecke Premium-Objekte oder positionier GebÃ¤ude neu',
+        'str_CustomTowns_tabSettings'             : 'StÃ¤dte',
+        'str_CustomTowns_tabPositions'            : 'GebÃ¤ude-Positionen',
+        'str_CustomTowns_customPositionsDisabled' : 'Aktiviere zuerst die Option "Eigene GebÃ¤ude-Positionen"',
+        'str_CustomTowns_confirmSaveChanged'      : 'GeÃ¤nderte Positionen speichern?',
         'str_CustomTowns_hideFlyingShop'          : 'Verstecke fliegendes Premium-Schiff',
-        'str_CustomTowns_hideDailyTasks'          : 'Verstecke tägliche Aufgaben',
+        'str_CustomTowns_hideDailyTasks'          : 'Verstecke tÃ¤gliche Aufgaben',
         'str_CustomTowns_hideAmbrosiaFountain'    : 'Verstecke Ambrosiabrunnen',
-        'str_CustomTowns_hideCapitalBackground'   : 'Kein eigener Hintergrund für Hauptstadt',
+        'str_CustomTowns_hideCapitalBackground'   : 'Kein eigener Hintergrund fÃ¼r Hauptstadt',
         'str_CustomTowns_hideCinema'              : 'Verstecke Projections-Theater',
         'str_CustomTowns_hidePirateFortress'      : 'Verstecke Piratenfestung',
         'str_CustomTowns_hideLockedPosition'      : 'Verstecke gesperrten Bauplatz',
-        'str_CustomTowns_NoAnimPointerEvents'     : 'Ignoriere Maus-Events für Animationen/Walker (deaktiviert Sprechblasen)',
-        'str_CustomTowns_DragDropHint'            : '<i>(Ändere die Positionen der Gebäude per Drag&Drop)</i>',
+        'str_CustomTowns_NoAnimPointerEvents'     : 'Ignoriere Maus-Events fÃ¼r Animationen/Walker (deaktiviert Sprechblasen)',
+        'str_CustomTowns_DragDropHint'            : '<i>(Ã„ndere die Positionen der GebÃ¤ude per Drag&Drop)</i>',
         'str_CustomTowns_restrictedPosition'      : 'Kann dort nicht platziert werden',
-        'str_CustomTowns_useCustomPositions'      : 'Eigene Gebäude-Positionen',
+        'str_CustomTowns_useCustomPositions'      : 'Eigene GebÃ¤ude-Positionen',
         'str_CustomTowns_SavePositionsButtonText' : 'Positionen speichern',
 
         // -- TweakResource
         'str_TweakResources_Name'                   : 'Ressourcen',
-        'str_TweakResources_Info'                   : 'Lässt Dir fehlende Ressourcen anzeigen',
+        'str_TweakResources_Info'                   : 'LÃ¤sst Dir fehlende Ressourcen anzeigen',
         'str_TweakResources_showMissing'            : 'Fehlende Ressourcen anzeigen',
         'str_TweakResources_showRemaining'          : 'Verbleibende Ressourcen anzeigen',
 
         // -- Updatechecker
         'str_UpdateChecker_Name'                    : 'UpdateChecker',
         'str_UpdateChecker_Info'                    : 'Sucht nach neuen IkaTweaks-Versionen',
-        'str_UpdateChecker_forceNow'                : 'Überprüfen',
+        'str_UpdateChecker_forceNow'                : 'ÃœberprÃ¼fen',
         'str_UpdateChecker_lastResult'              : 'Letztes Ergebnis',
-        'str_UpdateChecker_newVersionAvailable'     : 'Neue Version verfügbar',
+        'str_UpdateChecker_newVersionAvailable'     : 'Neue Version verfÃ¼gbar',
         'str_UpdateChecker_versionUpToDate'         : 'Version ist aktuell',
-        'str_UpdateChecker_HowDowsThisWork'         : 'Wie dies funktioniert: IkaTweaks lädt zu Deiner eigenen Sicherheit kein externes Script, sondern ein kleines Bild von GitHub, mit dessen Breite und Höhe überprüft wird ob eine neue Version verfügbar ist ;)',
+        'str_UpdateChecker_HowDowsThisWork'         : 'Wie dies funktioniert: IkaTweaks lÃ¤dt zu Deiner eigenen Sicherheit kein externes Script, sondern ein kleines Bild von GitHub, mit dessen Breite und HÃ¶he Ã¼berprÃ¼ft wird ob eine neue Version verfÃ¼gbar ist ;)',
         'str_UpdateChecker_linksHeader'             : 'Die neuste Version gibt es immer hier:',
 
     });
