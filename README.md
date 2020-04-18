@@ -1,5 +1,5 @@
 
-[[GitHub](https://github.com/YveOne/Userscript-IkaTweaks)] [[Greasyfork](https://greasyfork.org/de/scripts/33659-ikatweaks)] [[OpenUserJS](https://openuserjs.org/scripts/YveOne/IkaTweaks)]
+[[GitHub](https://github.com/YveOne/Userscript-IkaTweaks)] [[Greasyfork](https://greasyfork.org/de/scripts/401313-ikatweaks)] [[OpenUserJS](https://openuserjs.org/scripts/YveOne/IkaTweaks)]
 
 ### With IkaTweaks you can:
 - change city dropdown menu (custom order, show tradegoods, ...)
