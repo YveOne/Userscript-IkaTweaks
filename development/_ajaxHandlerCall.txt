@@ -1,0 +1,17 @@
+
+function ajaxHandlerCall(j,h){
+    if(j===window.document.location.href&&!(j.indexOf("view=city")||j.indexOf("view=island")||j.indexOf("view=worldmap_iso"))||j==="http://"+window.document.location.hostname+"/"||j==="https://"+window.document.location.hostname+"/"||j==""||j=="javascript:void(0);"){console.log("do nothing");return false}
+    if(ikariam.controller.action==="dragHandle"){return false}
+    if(ikariam.controller.clickTarget!==null&&($(ikariam.controller.clickTarget).hasClass("button_disabled")||$(ikariam.controller.clickTarget).hasClass("disabled"))){return false}
+
+    $("#loadingPreview").css("display","block");
+    if(j.indexOf("action=")===-1){ikariam.controller.backLink=j}
+    var g=splitUrlQueryString(j);
+    j=ikariam.model.formatViewParameters(g);
+    if(ikariam.model.checkReload(g)){
+        window.document.location.href=j
+    }else{
+        ikariam.controller.executeAjaxRequest(j+"&ajax=1",h)}return false}
+
+
+

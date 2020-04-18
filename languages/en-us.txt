@@ -1,0 +1,127 @@
+
+    LANG.alias('us', 'en');
+    LANG('en', 'English', {
+
+        'str_IkaTweaks'             : 'IkaTweaks',
+        'str_IkaTweaks_menu'        : 'IkaTweaks Menu',
+        'str_IkaTweaks_tabModules'  : 'Modules',
+        'str_IkaTweaks_tabAbout'    : 'About & Credits',
+
+        'str_modules'           : 'Modules',
+        'str_enabled'           : 'Enabled',
+        'str_name'              : 'Name',
+        'str_description'       : 'Description',
+        'str_save'              : 'Save',
+        'str_saveLanguage'      : 'Save language',
+
+        'str_IkaTweaks_aboutHeader'     : 'About',
+        'str_IkaTweaks_creditsHeader'   : 'Credits',
+
+        'str_ClearStorageText'  : 'Clear LocalStorage',
+        'str_ClearStorageInfo'  : 'Here you can delete all saved data for IkaTweaks out of your Browser',
+
+        'str_ToGreasyForkText'  : 'IkaTweaks @ Greasy Fork',
+        'str_ToOpenUserJSText'  : 'IkaTweaks @ OpenUserJS',
+        'str_ToGitHubRepoText'  : 'IkaTweaks @ GitHub',
+
+        'str_IkaTweaks_aboutText2'  : 'Questions, ideas, bugs or complaints? Email me at <span id="myEmail"></span> or visit me at: ',
+        'str_IkaTweaks_aboutCredit1': 'The used OnePiece images can be found on: <a id="creditUrl1"></a>',
+        'str_IkaTweaks_aboutCredit2': 'Thanks to xarisgr for greek translation',
+
+        // -- CityListing
+        'str_CityListing_name'                  : 'City Listing',
+        'str_CityListing_info'                  : 'Extends your city dropdown menu',
+        'str_CityListing_hideCoords'            : 'Hide Coords',
+        'str_CityListing_showTradegoods'        : 'Show Tradegoods',
+        'str_CityListing_highlightSelected'     : 'Highlight selected city',
+        'str_CityListing_sortList'              : 'Use custom sorting',
+        'str_CityListing_sortEverywhere'        : 'Use custom sorting everywhere (palace, museum, ...)',
+
+        // -- ChangeAdvisors
+        'str_ChangeAdvisors_name'                    : 'Change Advisors',
+        'str_ChangeAdvisors_info'                    : 'Change appearance of your advisors',
+        'str_ChangeAdvisors_hideButtons'             : 'Hide premium buttons',
+        'str_ChangeAdvisors_replaceAdvisors'         : 'Replace advisors',
+        'str_ChangeAdvisors_cities'                  : 'Cities',
+        'str_ChangeAdvisors_military'                : 'Military',
+        'str_ChangeAdvisors_research'                : 'Research',
+        'str_ChangeAdvisors_diplomacy'               : 'Diplomacy',
+        'str_ChangeAdvisors_maleMayor'               : 'Mayor',
+        'str_ChangeAdvisors_maleMayorPremium'        : 'Mayor (premium)',
+        'str_ChangeAdvisors_maleGeneral'             : 'General',
+        'str_ChangeAdvisors_maleGeneralPremium'      : 'General (premium)',
+        'str_ChangeAdvisors_maleScientist'           : 'Scientist',
+        'str_ChangeAdvisors_maleScientistPremium'    : 'Scientist (premium)',
+        'str_ChangeAdvisors_maleDiplomat'            : 'Diplomat',
+        'str_ChangeAdvisors_maleDiplomatPremium'     : 'Diplomat (premium)',
+        'str_ChangeAdvisors_onePieceLuffy'           : 'Monkey D. Luffy (One Piece)',
+        'str_ChangeAdvisors_onePieceZoro'            : 'Roronoa Zoro (One Piece)',
+        'str_ChangeAdvisors_onePieceUsopp'           : 'Usopp (One Piece)',
+        'str_ChangeAdvisors_onePieceNami'            : 'Nami (One Piece)',
+        'str_ChangeAdvisors_barbarianMayor'              : 'Barbarian mayor',
+        'str_ChangeAdvisors_barbarianMayorPremium'       : 'Barbarian mayor (premium)',
+        'str_ChangeAdvisors_barbarianGeneral'            : 'Barbarian general',
+        'str_ChangeAdvisors_barbarianGeneralPremium'     : 'Barbarian general (premium)',
+        'str_ChangeAdvisors_barbarianScientist'          : 'Barbarian scientist',
+        'str_ChangeAdvisors_barbarianScientistPremium'   : 'Barbarian scientist (premium)',
+        'str_ChangeAdvisors_barbarianDiplomat'           : 'Barbarian diplomat',
+        'str_ChangeAdvisors_barbarianDiplomatPremium'    : 'Barbarian diplomat (premium)',
+        'str_ChangeAdvisors_femaleMayor'                 : 'Female mayor',
+        'str_ChangeAdvisors_femaleMayorPremium'          : 'Female mayor (premium)',
+        'str_ChangeAdvisors_femaleGeneral'               : 'Female general',
+        'str_ChangeAdvisors_femaleGeneralPremium'        : 'Female general (premium)',
+        'str_ChangeAdvisors_femaleScientist'             : 'Female scientist',
+        'str_ChangeAdvisors_femaleScientistPremium'      : 'Female scientist (premium)',
+        'str_ChangeAdvisors_femaleDiplomat'              : 'Female diplomat',
+        'str_ChangeAdvisors_femaleDiplomatPremium'       : 'Female diplomat (premium)',
+
+        // -- AntiAds
+        'str_AntiAds_name'                          : 'Anti Premium',
+        'str_AntiAds_info'                          : 'Hide annoying stuff',
+        'str_AntiAds_hideSpeedUpButton'             : 'Hide speedup button',
+        'str_AntiAds_hideAdvertising'               : 'Hide advertising',
+        'str_AntiAds_hideHappyHour'                 : 'Hide happy hour countdown',
+
+        // -- MoveBuildings
+        'str_MoveBuildings_name'            : 'Move Buildings',
+        'str_MoveBuildings_info'            : 'Change positions of your buildings',
+        'str_MoveBuildings_SavePositions'   : 'Save positions',
+        'str_MoveBuildings_DragDropHint'    : '(Change positions by drag&drop them onto each other)',
+
+        // -- CustomTowns
+        'str_CustomTowns_name'                    : 'Customize Towns',
+        'str_CustomTowns_info'                    : 'Hide premium buildings or re-position your town buildings',
+        'str_CustomTowns_tabSettings'             : 'Towns',
+        'str_CustomTowns_tabPositions'            : 'Building positions',
+        'str_CustomTowns_customPositionsDisabled' : 'Enable custom building positions first',
+        'str_CustomTowns_confirmSaveChanged'      : 'Save changed positions?',
+        'str_CustomTowns_hideCapitalBackground'   : 'No custom background for capital',
+        'str_CustomTowns_hidePirateFortress'      : 'Hide pirate fortress',
+        'str_CustomTowns_hideLockedPosition'      : 'Hide locked position',
+        'str_CustomTowns_hideWalkers'             : 'Hide walkers',
+        'str_CustomTowns_NoAnimPointerEvents'     : 'Ignore mouse events for animations/walkers (will disable walker bubbles)',
+        'str_CustomTowns_restrictedPosition'      : 'Can\'t be placed there',
+        'str_CustomTowns_useCustomPositions'      : 'Use custom building positions',
+        'str_CustomTowns_customBackground'        : 'Custom background for all towns',
+        'str_CustomTowns_hideDailyTasks'                : 'Hide daily tasks',
+        'str_CustomTowns_hideRegistrationGifts'         : 'Hide registration gifts',
+        'str_CustomTowns_hideFlyingShop'                : 'Hide flying premium shop',
+        'str_CustomTowns_hideAmbrosiaFountain'          : 'Hide ambrosia fountain',
+        
+        // -- TweakResource
+        'str_TweakResources_name'                   : 'Resources',
+        'str_TweakResources_info'                   : 'Shows missing/remaining resources',
+        'str_TweakResources_showMissing'            : 'Show missing resources',
+        'str_TweakResources_showRemaining'          : 'Show remaining resources',
+
+        // -- Updatechecker
+        'str_UpdateChecker_name'                    : 'UpdateChecker',
+        'str_UpdateChecker_info'                    : 'Check for new version of IkaTweaks',
+        'str_UpdateChecker_forceNow'                : 'Check now',
+        'str_UpdateChecker_lastResult'              : 'Last result',
+        'str_UpdateChecker_newVersionAvailable'     : 'New version available',
+        'str_UpdateChecker_versionUpToDate'         : 'Version is up to date',
+        'str_UpdateChecker_HowDoesThisWork'         : 'How does this work: For your own safety IkaTweaks does NOT load any extern scripts but a tiny image from GitHub. With its weight and height it will be checked if a new version is available or not ;)',
+        'str_UpdateChecker_linksHeader'             : 'Here you will get always the newest version:',
+
+    });
