@@ -1462,7 +1462,7 @@
         var modData = jsonDecode(LS.load('MoveBuildings'), {});
         if(typeof modData.customPositions           == 'undefined') modData.customPositions         = {};
 
-        var moveBuildingsBackground = 'https://github.com/YveOne/Userscript-IkaTweaks/blob/master/images/moveBuildingsBackground.png?raw=true';
+        var moveBuildingsBackground = 'https://github.com/YveOne/Userscript-IkaTweaks/blob/master/images/moveBuildingsBackground.jpg?raw=true';
         var moveBuildingsEmptyButton = 'https://github.com/YveOne/Userscript-IkaTweaks/blob/master/images/moveBuildingsEmptyButton.png?raw=true';
 
         const BUILDING_POSITIONS_COUNT = 20;
