@@ -1,4 +1,3 @@
-ABANDONED - NO MORE UNDER DEVELOPMENT!
 
 [[GitHub](https://github.com/YveOne/Userscript-IkaTweaks)] [[Greasyfork](https://greasyfork.org/de/scripts/33659-ikatweaks)] [[OpenUserJS](https://openuserjs.org/scripts/YveOne/IkaTweaks)]
 
@@ -8,7 +7,7 @@ ABANDONED - NO MORE UNDER DEVELOPMENT!
 - hide town objects (flying premium ship, ambrosia fountain, ...)
 - change your building positions (only custom side!)
 - display missing/remaining resources
-- ... more modules/features may come later
+- ... AND MUCH MORE!
 
 IkaTweaks is currently available in german, english and greek.
 If you want to help me localizing take a look at:
