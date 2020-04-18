@@ -4,7 +4,7 @@
 //
 // @name            IkaTweaks
 // @description     Improvements for Ikariam
-// @version         2.0
+// @version         2.1
 // @author          Yvonne P.
 // @license         MIT; https://opensource.org/licenses/MIT
 // @icon            http://de.ikariam.gameforge.com/favicon.ico
@@ -255,6 +255,13 @@
         var definedModules = {};
         var sidebarButtons = [];
 
+        function loadModule(modId) {
+            var modData = jsonDecode(LS.load(modId), {});
+            definedModules[modId].func(modData, function() {
+                LS.save(modId, JSON.stringify(modData));
+            });
+        }
+
         IkaTweaks.injectCSS = function(css, cb, sl) {
             sl = sl || 33;
             waitFor(function(){
@@ -273,9 +280,17 @@
             #UpdateChecker_c:before {
                 content: url('${mainViewIcon}');
             }
-            #container .mainContentBox .mainContent {
-                padding-top: 20px; !important;
+            /** extend h3 header **/
+            .contentBox01h .header.hidden {
+                overflow: hidden;
+                height: 0px;
+                padding-top: 7px;
             }
+            /** fix research window list **/
+            ol.research_type {
+                width: 220px !important;
+            }
+            /** fix city select **/
             .dropdownContainer.city_select li.last-child {
                 background-position: left -142px !important;
                 padding-bottom: 3px;
@@ -283,24 +298,46 @@
             .dropdownContainer.city_select li.last-child:hover{
                 background-position: left -196px !important;
             }
-            .contentBox01h .header.hidden {
-                overflow: hidden;
-                height: 0px;
-                padding-top: 7px;
+            /** increase view top padding from 10 to 20, looks better **/
+            #container .mainContentBox .mainContent {
+                padding-top: 20px !important;
+            }
+            /** fix h4 width, margin on right side **/
+            #container .satisfaction_overview .sub_header, #container .notices h4 {
+                margin: 0 3.5px 0 3px;
+            }
+            /** fix townhall view div right margin **/
+            #townHall .population_graph {
+                margin: 0 3.5px 0 3px;
+            }
+            /** fix scrollbar x position **/
+            #container .scroller {
+                background-position-x: -1px !important;
+            }
+            /** fix scroll window margin top **/
+            #container .mainContentBox .mainContentScroll {
+                margin-top: -0.5px;
+            }
+            /** fix scroll area margin right to parent view window **/
+            #container .scroll_area {
+                margin-right: 3px;
+            }
+            #container .scroll_area.scroll_disabled {
+                margin-right: 0px;
             }
         `);
-
-
-
 
 
         IkaTweaks.setModule = function(modId, modFunc) {
             if(typeof enabledModules[modId] == 'undefined') enabledModules[modId] = false;
             definedModules[modId] = {
-                name:   `{str_${modId}_name}`,
-                info:   `{str_${modId}_info}`,
+                name: `{str_${modId}_name}`,
+                info: `{str_${modId}_info}`,
+                func: modFunc,
             };
-            if(enabledModules[modId]) modFunc();
+            if(enabledModules[modId]) {
+                loadModule(modId);
+            }
             IkaTweaks.injectCSS(`
                 #${modId}_c:before {
                     content: url('${mainViewIcon}');
@@ -610,9 +647,7 @@
     //--------------------------------------------------------------------------------------------------
     // MODULE: CityListing
 
-    IkaTweaks.setModule('CityListing', function(){
-
-        var modData = jsonDecode(LS.load('CityListing'), {});
+    IkaTweaks.setModule('CityListing', function(modData, modDataSave){
         if(typeof modData.hideCoords        == 'undefined') modData.hideCoords          = false;
         if(typeof modData.showTradegoods    == 'undefined') modData.showTradegoods      = true;
         if(typeof modData.highlightSelected == 'undefined') modData.highlightSelected   = true;
@@ -956,7 +991,7 @@
                     $('#CityListing_sortingList tr').each(function(){
                         modData.sortedList.push(parseInt($(this).attr('cityId')));
                     });
-                    LS.save('CityListing', JSON.stringify(modData));
+                    modDataSave();
                     ikariam.backgroundView.updateCityDropdownMenu();
                     hookChangeView();
                 });
@@ -973,12 +1008,7 @@
     //-----------------------------------------------------------------------------
     // MODULE: ChangeAdvisors
 
-    IkaTweaks.setModule('ChangeAdvisors', function(){
-
-        // barbarian: https://gf2.geo.gfsrv.net/cdnd3/14b232e4c095c35b7dc5cb811e024a.css
-        // female: https://gf1.geo.gfsrv.net/cdn9b/61e1d549e38ed0c039cf550b17d95a.css
-
-        var modData = jsonDecode(LS.load('ChangeAdvisors'), {});
+    IkaTweaks.setModule('ChangeAdvisors', function(modData, modDataSave){
         if(typeof modData.replacements == 'undefined') modData.replacements = {cities:'maleMayor',military:'maleGeneral',research:'maleScientist',diplomacy:'maleDiplomat'};
         if(typeof modData.hideButtons == 'undefined') modData.hideButtons = true;
 
@@ -1316,7 +1346,7 @@
                     forEach(advisorImages, (_, advisorId) => {
                         modData.replacements[advisorId] = AdvisorSelects[advisorId].val();
                     });
-                    LS.save('ChangeAdvisors', JSON.stringify(modData));
+                    modDataSave();
                     updateCSS();
                 });
 
@@ -1352,12 +1382,16 @@
     //-----------------------------------------------------------------------------
     // MODULE: AntiAds
 
-    IkaTweaks.setModule('AntiAds', function(){
-
-        var modData = jsonDecode(LS.load('AntiAds'), {});
+    IkaTweaks.setModule('AntiAds', function(modData, modDataSave){
         if(typeof modData.hideSpeedUpButton         == 'undefined') modData.hideSpeedUpButton       = true;
         if(typeof modData.hideAdvertising           == 'undefined') modData.hideAdvertising         = true;
         if(typeof modData.hideHappyHour             == 'undefined') modData.hideHappyHour           = true;
+        if(typeof modData.hideOfferBox              == 'undefined') modData.hideOfferBox            = true;
+        if(typeof modData.hideSlotResourceShop      == 'undefined') modData.hideSlotResourceShop    = true;
+        if(typeof modData.hideSlotPremiumTrader     == 'undefined') modData.hideSlotPremiumTrader   = true;
+        if(typeof modData.hideAmbrosiaDonateForm    == 'undefined') modData.hideAmbrosiaDonateForm  = true;
+        if(typeof modData.hideMsgArchiveButtons     == 'undefined') modData.hideMsgArchiveButtons   = true;
+        if(typeof modData.hideBarracksDummiesBox    == 'undefined') modData.hideBarracksDummiesBox  = true;
 
         TPL.set('AntiAds_settingsWindow', `
             <div id="mainview">
@@ -1398,35 +1432,68 @@
                 css.push('#city #locations .timetofinish.buildingSpeedup { padding-right: 16px; }');
                 css.push('#city .buildingSpeedupButton { display: none; }');
             }
+            if (modData.hideSlotResourceShop) {
+                //$('li.expandable.resourceShop').remove();
+                css.push('#container .slot_menu li.expandable.resourceShop { display: none !important; }');
+            }
+            if (modData.hideSlotPremiumTrader) {
+                //$('li[onclick^="ajaxHandlerCall(\'?view=premiumTrader\')"]').remove();
+                css.push('#container .slot_menu li[onclick^="ajaxHandlerCall(\'?view=premiumTrader\')"] { display: none !important; }');
+            }
+            if (modData.hideOfferBox) {
+                css.push('#setWorkers .content { min-height: unset !important; }');
+            }
+            if (modData.hideMsgArchiveButtons) {
+                css.push('#tab_diplomacyAdvisor .button_bar_msg { display: none !important; }');
+                css.push('#tab_diplomacyAdvisor .button_bar_right { display: none !important; }');
+            }
             if(cssElement) removeElement(cssElement);
             IkaTweaks.injectCSS(css.join(''), function(el){cssElement=el;});
         }
         updateCSS();
 
-        if (modData.hideAdvertising) {
-
-            function changedHTML() {
-                $('a[onclick="ajaxHandlerCall(\'?view=premium\');return false;"]').each(function() {
+        function changedHTML() {
+            if (modData.hideAdvertising) {
+                $('a[onclick^="ajaxHandlerCall(\'?view=premium\')"]').each(function() {
                     $(this).parent().remove();
                 });
             }
-
-            waitFor(function(){
-                try{return ikariam.controller;}catch(e){}
-                return false;
-            }, function(n){
-                if(!n || n===null) return;
-                if(n.ajaxResponder===null){n.ajaxResponder=ikariam.getClass(ajax.Responder);}
-                hookFunction(n.ajaxResponder, 'changeHTML', changedHTML);
-            }, 5000, 33);
-
+            if (modData.hideBarracksDummiesBox) {
+                $('div.contentBoxIcon.premiumDummy').closest('#premium_btn2').remove();
+            }
+            if (modData.hideOfferBox) {
+//TODO?
+                $('div.premiumOfferBox').css('display', 'none');
+                $('div.premiumOffer').css('display', 'none');
+                $('div.contentBoxIcon.premiumCitizens').closest('div.contentBox01h').css('display', 'none');
+                $('#js_premiumAccountOffer').closest('div.contentBox01h').remove();
+            }
+            if (modData.hideAmbrosiaDonateForm) {
+                // dont remove() - will cause js errors
+                $('#ambrosiaDonateForm').closest('li.accordionItem').css('display', 'none');
+            }
+            setTimeout(ikariam.controller.adjustSizes, 100);
         }
+        waitFor(function(){
+            try{return ikariam.controller;}catch(e){}
+            return false;
+        }, function(n){
+            if(!n || n===null) return;
+            if(n.ajaxResponder===null){n.ajaxResponder=ikariam.getClass(ajax.Responder);}
+            hookFunction(n.ajaxResponder, 'changeHTML', changedHTML);
+        }, 5000, 33);
 
         IkaTweaks.addSidebarButton('{str_AntiAds_name}', function(){
             var checkboxes = {
                 hideSpeedUpButton       : modData.hideSpeedUpButton,
                 hideHappyHour           : modData.hideHappyHour,
                 hideAdvertising         : modData.hideAdvertising,
+                hideOfferBox            : modData.hideOfferBox,
+                hideSlotResourceShop    : modData.hideSlotResourceShop,
+                hideSlotPremiumTrader   : modData.hideSlotPremiumTrader,
+                hideAmbrosiaDonateForm  : modData.hideAmbrosiaDonateForm,
+                hideMsgArchiveButtons   : modData.hideMsgArchiveButtons,
+                hideBarracksDummiesBox  : modData.hideBarracksDummiesBox,
             };
             IkaTweaks.changeHTML('AntiAds', TPL.get('AntiAds_settingsWindow', {
                 settingsTR: TPL.getEach(checkboxes, function(modDataId, checked){
@@ -1443,7 +1510,7 @@
                     forEach(checkboxes, (_, k) => {
                         modData[k] = $('#AntiAds_settingCheckbox'+k+'Img').hasClass('checked');
                     });
-                    LS.save('AntiAds', JSON.stringify(modData));
+                    modDataSave();
                     updateCSS();
                 });
             });
@@ -1457,9 +1524,7 @@
     //-----------------------------------------------------------------------------
     // MODULE: MoveBuildings
 
-    IkaTweaks.setModule('MoveBuildings', function(){
-
-        var modData = jsonDecode(LS.load('MoveBuildings'), {});
+    IkaTweaks.setModule('MoveBuildings', function(modData, modDataSave){
         if(typeof modData.customPositions           == 'undefined') modData.customPositions         = {};
 
         var moveBuildingsBackground = 'https://github.com/YveOne/Userscript-IkaTweaks/blob/master/images/moveBuildingsBackground.jpg?raw=true';
@@ -1765,11 +1830,10 @@
                 });
             }
 
-            function saveWorking()
-            {
+            function saveWorking() {
                 workingConfirmTownChange = false;
                 for(var i=0; i<BUILDING_POSITIONS_COUNT; i+=1) modData.customPositions[workingCityKey][i] = workingPositionAliases[i];
-                LS.save('MoveBuildings', JSON.stringify(modData));
+                modDataSave();
                 updatePositionsCSS();
             }
 
@@ -1810,7 +1874,18 @@
     //-----------------------------------------------------------------------------
     // MODULE: CustomTowns
 
-    IkaTweaks.setModule('CustomTowns', function(){
+    IkaTweaks.setModule('CustomTowns', function(modData, modDataSave){
+        if(typeof modData.hideCapitalBackground     == 'undefined') modData.hideCapitalBackground   = false;
+        if(typeof modData.hidePirateFortress        == 'undefined') modData.hidePirateFortress      = false;
+        if(typeof modData.hideLockedPosition        == 'undefined') modData.hideLockedPosition      = false;
+        if(typeof modData.hideWalkers               == 'undefined') modData.hideWalkers             = false;
+        if(typeof modData.NoAnimPointerEvents       == 'undefined') modData.NoAnimPointerEvents     = false;
+        if(typeof modData.customBackgroundEnabled   == 'undefined') modData.customBackground        = false;
+        if(typeof modData.customBackground          == 'undefined') modData.customBackground        = 0;
+        if(typeof modData.hideDailyTasks            == 'undefined') modData.hideDailyTasks          = false;
+        if(typeof modData.hideRegistrationGifts     == 'undefined') modData.hideRegistrationGifts   = false;
+        if(typeof modData.hideFlyingShop            == 'undefined') modData.hideFlyingShop          = true;
+        if(typeof modData.hideAmbrosiaFountain      == 'undefined') modData.hideAmbrosiaFountain    = true;
 
 /***
 
@@ -1889,19 +1964,6 @@
                 'se': '//gf2.geo.gfsrv.net/cdn46/12f80c826b9a4f841f3bd0d49df1d3.jpg',
             },
         ];
-
-        var modData = jsonDecode(LS.load('CustomTowns'), {});
-        if(typeof modData.hideCapitalBackground     == 'undefined') modData.hideCapitalBackground   = false;
-        if(typeof modData.hidePirateFortress        == 'undefined') modData.hidePirateFortress      = false;
-        if(typeof modData.hideLockedPosition        == 'undefined') modData.hideLockedPosition      = false;
-        if(typeof modData.hideWalkers               == 'undefined') modData.hideWalkers             = false;
-        if(typeof modData.NoAnimPointerEvents       == 'undefined') modData.NoAnimPointerEvents     = false;
-        if(typeof modData.customBackgroundEnabled   == 'undefined') modData.customBackground        = false;
-        if(typeof modData.customBackground          == 'undefined') modData.customBackground        = 0;
-        if(typeof modData.hideDailyTasks            == 'undefined') modData.hideDailyTasks          = false;
-        if(typeof modData.hideRegistrationGifts     == 'undefined') modData.hideRegistrationGifts   = false;
-        if(typeof modData.hideFlyingShop            == 'undefined') modData.hideFlyingShop          = true;
-        if(typeof modData.hideAmbrosiaFountain      == 'undefined') modData.hideAmbrosiaFountain    = true;
 
         var cssObjectsElement;
         function updateObjectsCSS() {
@@ -2051,7 +2113,7 @@
                         modData[k] = $('#CustomTowns_settingCheckbox'+k+'Img').hasClass('checked');
                     });
                     modData.customBackground = parseInt($('#js_CustomTowns_customBackgroundSelectOptions').val());
-                    LS.save('CustomTowns', JSON.stringify(modData));
+                    modDataSave();
                     updateObjectsCSS();
                 });
 
@@ -2068,9 +2130,7 @@
     //-----------------------------------------------------------------------------
     // MODULE: TweakResources
 
-    IkaTweaks.setModule('TweakResources', function(){
-
-        var modData = jsonDecode(LS.load('TweakResources'), {});
+    IkaTweaks.setModule('TweakResources', function(modData, modDataSave){
         if(typeof modData.showMissing   == 'undefined') modData.showMissing     = true;
         if(typeof modData.showRemaining == 'undefined') modData.showRemaining   = false;
 
@@ -2167,7 +2227,7 @@
                     forEach(checkboxes, (_, k) => {
                         modData[k] = $('#TweakResources_settingCheckbox'+k+'Img').hasClass('checked');
                     });
-                    LS.save('TweakResources', JSON.stringify(modData));
+                    modDataSave();
                 });
             });
         });
@@ -2180,7 +2240,7 @@
     //-----------------------------------------------------------------------------
     // MODULE: UpdateChecker
 
-    IkaTweaks.setModule('UpdateChecker', function(){
+    IkaTweaks.setModule('UpdateChecker', function(modData, modDataSave){
 
         TPL.set('UpdateChecker_window', `
             <div id="mainview">
@@ -2239,7 +2299,7 @@
         function checkImage(cb) {
             var image = new Image();
             image.onload = function(){
-                newMajor    = image.width;
+                newMajor    = image.width-1;
                 newMinor    = image.height-1;
                 var newAvailable = (newMajor>nowMajor)||(newMajor==nowMajor&&newMinor>nowMinor);
                 if(newAvailable) {
@@ -2308,8 +2368,7 @@
                         showWindow();
                     });
                 });
-                if(showWindowAndList)
-                {
+                if (showWindowAndList) {
                     showWindowAndList = false;
                     listVersions(function(){});
                 }
@@ -2320,7 +2379,7 @@
 
     });
 
-    // MODULE: TweakResources
+    // MODULE: UpdateChecker
     //-----------------------------------------------------------------------------
 
     LANG.alias('us', 'en');
@@ -2405,6 +2464,12 @@
         'str_AntiAds_hideSpeedUpButton'             : 'Hide speedup button',
         'str_AntiAds_hideAdvertising'               : 'Hide advertising',
         'str_AntiAds_hideHappyHour'                 : 'Hide happy hour countdown',
+        'str_AntiAds_hideOfferBox'                  : 'Hide offer box in windows',
+        'str_AntiAds_hideSlotResourceShop'          : 'Hide expandable slot "Resource Shop"',
+        'str_AntiAds_hideSlotPremiumTrader'         : 'Hide expandable slot "Premium Trader"',
+        'str_AntiAds_hideAmbrosiaDonateForm'        : 'Hide "Donate ambrosia" in sidebar',
+        'str_AntiAds_hideMsgArchiveButtons'         : 'Hide message archive buttons',
+        'str_AntiAds_hideBarracksDummiesBox'        : 'Hide premium dummy box in barracks',
 
         // -- MoveBuildings
         'str_MoveBuildings_name'            : 'Move Buildings',
@@ -2530,6 +2595,12 @@
         'str_AntiAds_hideSpeedUpButton'             : 'Verstecke SpeedUp-Button',
         'str_AntiAds_hideAdvertising'               : 'Verstecke Werbung',
         'str_AntiAds_hideHappyHour'                 : 'Verstecke Happy-Hour Countdown',
+        'str_AntiAds_hideOfferBox'                  : 'Verstecke Angebote-Box im Fenster',
+        'str_AntiAds_hideSlotResourceShop'          : 'Verstecke Slot "Rohstoffe holen"',
+        'str_AntiAds_hideSlotPremiumTrader'         : 'Verstecke Slot "Premium-Händler"',
+        'str_AntiAds_hideAmbrosiaDonateForm'        : 'Verstecke "Ambrosia spenden" in der Seitenleiste',
+        'str_AntiAds_hideMsgArchiveButtons'         : 'Verstecke Nachrichten-Archivieren-Buttons',
+        'str_AntiAds_hideBarracksDummiesBox'        : 'Verstecke Premium-Dummy-Box in der Kaserne',
 
         // -- MoveBuildings
         'str_MoveBuildings_name'            : 'Gebäude versetzen',
@@ -2656,6 +2727,12 @@
         'str_AntiAds_hideSpeedUpButton'             : null,
         'str_AntiAds_hideAdvertising'               : null,
         'str_AntiAds_hideHappyHour'                 : null,
+        'str_AntiAds_hideOfferBox'                  : null,
+        'str_AntiAds_hideSlotResourceShop'          : null,
+        'str_AntiAds_hideSlotPremiumTrader'         : null,
+        'str_AntiAds_hideAmbrosiaDonateForm'        : null,
+        'str_AntiAds_hideMsgArchiveButtons'         : null,
+        'str_AntiAds_hideBarracksDummiesBox'        : null,
 
         // -- MoveBuildings
         'str_MoveBuildings_name'            : null,
