@@ -32,7 +32,7 @@
 
     const _LINKS_ = {
         OnePiece    : 'http://www.iconarchive.com/show/one-piece-character-icons-by-crountch.html',
-        GreasyFork  : 'https://greasyfork.org/de/scripts/33659-ikatweaks',
+        GreasyFork  : 'https://greasyfork.org/de/scripts/401313-ikatweaks',
         OpenUserJS  : 'https://openuserjs.org/scripts/YveOne/IkaTweaks',
         GitHubRepo  : 'https://github.com/YveOne/Userscript-IkaTweaks',
     };
