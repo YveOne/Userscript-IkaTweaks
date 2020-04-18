@@ -25,3 +25,4 @@ If you want to help me localizing take a look at:
 
 ### Changes:
 ![](https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/versions/version2.0.png "")
+![](https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/versions/version2.1.png "")
