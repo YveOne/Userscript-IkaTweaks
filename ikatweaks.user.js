@@ -2479,7 +2479,7 @@
 
         // -- CustomTowns
         'str_CustomTowns_name'                    : 'Customize Towns',
-        'str_CustomTowns_info'                    : 'Hide premium buildings or re-position your town buildings',
+        'str_CustomTowns_info'                    : 'Customize the appeareance of your cities or hide objects',
         'str_CustomTowns_tabSettings'             : 'Towns',
         'str_CustomTowns_tabPositions'            : 'Building positions',
         'str_CustomTowns_customPositionsDisabled' : 'Enable custom building positions first',
@@ -2610,7 +2610,7 @@
 
         // -- CustomTowns
         'str_CustomTowns_name'                    : 'Städte anpassen',
-        'str_CustomTowns_info'                    : 'Verstecke Premium-Objekte oder positionier Gebäude neu',
+        'str_CustomTowns_info'                    : 'Passe deine Stadt an oder lass Objekte ausblenden',
         'str_CustomTowns_tabSettings'             : 'Städte',
         'str_CustomTowns_tabPositions'            : 'Gebäude-Positionen',
         'str_CustomTowns_customPositionsDisabled' : 'Aktiviere zuerst die Option "Eigene Gebäude-Positionen"',
@@ -2742,7 +2742,7 @@
 
         // -- CustomTowns
         'str_CustomTowns_name'                    : 'Προσαρμοσμένες Πόλεις',
-        'str_CustomTowns_info'                    : 'Κρύψε η μετακίνησε τα κτίρια της πόλης σου',
+        'str_CustomTowns_info'                    : null,
         'str_CustomTowns_tabSettings'             : 'Πόλεις',
         'str_CustomTowns_tabPositions'            : 'Κτίρια',
         'str_CustomTowns_customPositionsDisabled' : 'Ενεργοποιήσε πρώτα τις προσαρμοσμένες θέσεις',
