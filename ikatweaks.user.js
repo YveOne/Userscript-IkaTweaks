@@ -404,6 +404,8 @@
                     $('#IkaTweaksSidebar_button'+i).click(sidebarButtons[i].func);
                 }
 
+                ikariam.controller.replaceCheckboxes();
+                ikariam.controller.replaceDropdownMenus();
                 if(typeof cb == 'function') cb();
             });
         };
@@ -547,7 +549,6 @@
                 }),
             }), function(){
                 $('#IkaTweaks_modulesTable tr').not(':even').addClass('alt');
-                ikariam.controller.replaceCheckboxes();
                 $('#js_tab_IkaTweaksMainview_modulesWindow').addClass('selected');
                 $('#js_tab_IkaTweaksMainview_modulesWindow').click(showSettingsWindow);
                 $('#js_tab_IkaTweaksMainview_aboutWindow').click(showAboutWindow);
@@ -578,7 +579,6 @@
                     select  : LangSelect.tpl(),
                 }),
             }), function(){
-                ikariam.controller.replaceDropdownMenus();
                 $('#js_tab_IkaTweaksMainview_aboutWindow').addClass('selected');
                 $('#js_tab_IkaTweaksMainview_modulesWindow').click(showSettingsWindow);
                 $('#js_tab_IkaTweaksMainview_aboutWindow').click(showAboutWindow);
@@ -1374,8 +1374,6 @@
                 $('#GeneralTweaks_citiesTable tr').not(':even').addClass('alt');
                 $('#GeneralTweaks_interactiveTable tr').not(':even').addClass('alt');
                 $('#GeneralTweaks_ressourcesTable tr').not(':even').addClass('alt');
-                ikariam.controller.replaceCheckboxes();
-                ikariam.controller.replaceDropdownMenus();
 
                 $('#js_GeneralTweaks_settingsButton').click(function(){
                     forEach(bugFixes, (_, k) => {
@@ -1692,7 +1690,6 @@
                 $('#CityListing_settingTable tr').not(':even').addClass('alt');
                 var CityListing_sortingList = $('#CityListing_sortingList');
 
-                ikariam.controller.replaceCheckboxes();
                 var relatedCity, relatedCityData = ikariam.model.relatedCityData;
 
                 // add current ids of moddata
@@ -2072,8 +2069,6 @@
                 }),
 
             }), function(){
-                ikariam.controller.replaceDropdownMenus();
-                ikariam.controller.replaceCheckboxes();
                 $('#js_ChangeAdvisors_saveSettingsBtn').click(function(){
                     forEach(advisorImages, (_, advisorId) => {
                         modData.replacements[advisorId] = AdvisorSelects[advisorId].val();
@@ -2440,7 +2435,6 @@
                 select : citySelect.tpl(),
             }), function(){
                 $('#js_tab_MoveBuildings_positionsWindow').addClass('selected');
-                ikariam.controller.replaceDropdownMenus();
                 buildWorkingButtons();
                 citySelect.change(function(){
                     if(workingConfirmTownChange && confirm(LANG('str_MoveBuildings_confirmSaveChanged'))) saveWorking();
@@ -2554,7 +2548,7 @@
             image.onerror = onError;
             image.src = 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/versions/versionImage.gif';
             modData.lastCheck = timestamp();
-            //modDataSave();
+            modDataSave();
         }
 
         // automatic daily check
@@ -2648,8 +2642,6 @@
                     showWindowAndList = false;
                     listVersions(function(){});
                 }
-                ikariam.controller.replaceCheckboxes();
-                ikariam.controller.replaceDropdownMenus();
             });
         };
 
