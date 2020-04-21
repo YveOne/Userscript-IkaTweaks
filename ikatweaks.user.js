@@ -696,7 +696,7 @@
         if(typeof modData.cityIgnoreCapital             == 'undefined') modData.cityIgnoreCapital           = false;
         if(typeof modData.cityHidePirateFortress        == 'undefined') modData.cityHidePirateFortress      = false;
         if(typeof modData.cityHideLockedPosition        == 'undefined') modData.cityHideLockedPosition      = false;
-        if(typeof modData.cityUseCustomBackground       == 'undefined') modData.cityCustomBackground        = false;
+        if(typeof modData.cityUseCustomBackground       == 'undefined') modData.cityUseCustomBackground     = false;
         if(typeof modData.cityCustomBackground          == 'undefined') modData.cityCustomBackground        = 0;
         if(typeof modData.cityHideDailyTasks            == 'undefined') modData.cityHideDailyTasks          = false;
         if(typeof modData.cityHideRegistrationGifts     == 'undefined') modData.cityHideRegistrationGifts   = false;
@@ -1125,7 +1125,7 @@
 
                 var townBackgrounds = [];
                 var capitalBackgrounds = [];
-                if (modData.cityUsecityCustomBackground) {
+                if (modData.cityUseCustomBackground) {
                     for(var i=0; i<CITY_BACKGROUNDS_COUNT; i+=1) {
                         townBackgrounds.push(CITY_BACKGROUNDS[modData.cityCustomBackground]);
                         capitalBackgrounds.push(CITY_BACKGROUNDS_CAPITAL[modData.cityCustomBackground]);
@@ -1152,13 +1152,6 @@
                 }
 
             }
-
-
-
-
-
-
-
 
             if(cssElement) removeElement(cssElement);
             injectCSS(css.join(''), function(el){cssElement=el;});
