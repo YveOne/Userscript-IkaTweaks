@@ -2341,6 +2341,7 @@
                 var pos2 = parseInt(ele2.attr('position'));
                 if((restricted[pos1] && restricted[pos1].indexOf(pos2) == -1) || (restricted[pos2] && restricted[pos2].indexOf(pos1) == -1)) {
                     IkaTweaks.warning(LANG('str_MoveBuildings_restrictedPosition'));
+                    return;
                 }
                 // swap working positions
                 workingPositionAliases[pos1] = [workingPositionAliases[pos2], workingPositionAliases[pos2] = workingPositionAliases[pos1]][0];
