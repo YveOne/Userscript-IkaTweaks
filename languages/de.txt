@@ -12,6 +12,11 @@
         'str_description'       : 'Beschreibung',
         'str_save'              : 'Speichern',
         'str_saveLanguage'      : 'Sprache speichern',
+        'str_success0'          : 'Erfolg',
+        'str_success1'          : 'Es ist mir eine Ehre',
+        'str_success2'          : 'Zu Befehl!',
+        'str_success3'          : 'Hallelujah',
+        'str_success4'          : 'So soll es sein',
 
         'str_IkaTweaks_aboutHeader'     : 'Info',
         'str_IkaTweaks_creditsHeader'   : 'Credits',
@@ -23,8 +28,55 @@
         'str_ToOpenUserJSText'  : 'IkaTweaks @ OpenUserJS',
         'str_ToGitHubRepoText'  : 'IkaTweaks @ GitHub',
         'str_IkaTweaks_aboutText2'  : 'Fragen, Ideen, Fehler gefunden oder eine Beschwerde? Einfach eine Email an <span id="myEmail"></span> oder besuche mich auf: ',
-        'str_IkaTweaks_aboutCredit1': 'Die hier benutzten OnePiece Bilder sind von: <a id="creditUrl1"></a>',
-        'str_IkaTweaks_aboutCredit2': null,
+        'str_IkaTweaks_aboutCredits': 'Die hier benutzten OnePiece Bilder sind von: <a id="creditUrl1"></a>',
+
+        // -- GeneralTweaks
+        'str_GeneralTweaks_name'                : 'Allgemeine Optimierungen',
+        'str_GeneralTweaks_info'                : 'Ändere CSS-Regeln oder entferne Objekte und Werbung',
+        // -- GeneralTweaks - bugFixes
+        'str_GeneralTweaks_bugFixes'                    : 'Bugfixes',
+        'str_GeneralTweaks_fixResearchWindowList'           : 'Fix Forschungsliste im Forschungsfenster',
+        'str_GeneralTweaks_fixCitySelectItems'              : 'Fix Stadt-Auswahl',
+        'str_GeneralTweaks_fixWindowTopPadding'             : 'Fix oberen Abstand vom Fenster',
+        'str_GeneralTweaks_fixScrollbars'                   : 'Fix Scrollbalken',
+        'str_GeneralTweaks_fixHoverEffectSwitching'         : 'Fix Hover-Effekte-Wechsel',
+        'str_GeneralTweaks_fixHoverToBackground'            : 'Setze MouseOver-Effekt in den Hintergrund (Behebt Anzeigefehler von Animationen)',
+        // -- GeneralTweaks - antiAds
+        'str_GeneralTweaks_antiAds'                     : 'Anti-Werbung',
+        'str_GeneralTweaks_adsHideSpeedUpButton'            : 'Entferne Speed-Up-Buttons',
+        'str_GeneralTweaks_adsHideWindowAds'                : 'Entferne Werbung',
+        'str_GeneralTweaks_adsHideHappyHour'                : 'Entferne Happy-Hour-Timer',
+        'str_GeneralTweaks_adsHideOfferBoxes'               : 'Entferne Premium-Angebote',
+        'str_GeneralTweaks_adsHideSlotResourceShop'         : 'Entferne Slot "Rohstoffe holen"',
+        'str_GeneralTweaks_adsHideSlotPremiumTrader'        : 'Entferne slot "Premium Händler"',
+        'str_GeneralTweaks_adsHideArchiveButtons'           : 'Entferne Archivieren-Buttons',
+        'str_GeneralTweaks_adsHideMilitaryDummies'          : 'Entferne militärische Attrappen',
+        'str_GeneralTweaks_adsHideAdvisorButtons'           : 'Entferne Berater-Premium-Buttons',
+        // -- GeneralTweaks - animations
+        'str_GeneralTweaks_animations'                  : 'Animationen',
+        'str_GeneralTweaks_animHideWalkers'                 : 'Verstecke alle Spaziergänger und Vögel',
+        'str_GeneralTweaks_animHideWalkerBubbles'           : 'Verstecke Sprechblasen von Spaziergängern',
+        'str_GeneralTweaks_animHideBirdsOnly'               : 'Verstecke nur Vögel',
+        // -- GeneralTweaks - cities
+        'str_GeneralTweaks_cities'                      : 'Städte',
+        'str_GeneralTweaks_cityIgnoreCapital'               : 'Benutze normalen Hintergrund auch für Hauptstadt',
+        'str_GeneralTweaks_cityUseCustomBackground'         : 'Benutzerdefinierter Hintergrund für all Deine Städte',
+        'str_GeneralTweaks_cityUseCustomBackgroundLevel'    : 'Stufe {level}',
+        'str_GeneralTweaks_cityHidePirateFortress'          : 'Verstecke Piratenfestung',
+        'str_GeneralTweaks_cityHideLockedPosition'          : 'Verstecke gesperrten Bauplatz',
+        'str_GeneralTweaks_cityHideDailyTasks'              : 'Verstecke tägliche Aufgaben',
+        'str_GeneralTweaks_cityHideRegistrationGifts'       : 'Verstecke tägliche Geschenke',
+        'str_GeneralTweaks_cityHideFlyingShop'              : 'Verstecke fliegenden Shop',
+        'str_GeneralTweaks_cityHideAmbrosiaFountain'        : 'Verstecke Ambrosia-Brunnen',
+        // -- GeneralTweaks - ressources
+        'str_GeneralTweaks_ressources'                  : 'Resourcen',
+        'str_GeneralTweaks_ressShowMissing'                 : 'Zeige fehlende Resourcen',
+        'str_GeneralTweaks_ressShowRemaining'               : 'Zeige verbleibende Resourcen',
+        // -- GeneralTweaks - interactive
+        'str_GeneralTweaks_interactive'                 : 'Interaktiv',
+        'str_GeneralTweaks_actShowMouseoverPlaques'         : 'Zeige Gebäudenamen auf Plaketten bei Mouse-Over',
+        'str_GeneralTweaks_actPreventPlaqueScaling'         : 'Zeige Plaketten immer mit voller Größe',
+        'str_GeneralTweaks_actHideMouseoverTitles'          : 'Verstecke Standard-Titel bei MouseOver',
 
         // -- CityListing
         'str_CityListing_name'                  : 'Städteliste',
@@ -38,7 +90,6 @@
         // -- ChangeAdvisors
         'str_ChangeAdvisors_name'                    : 'Berater ändern',
         'str_ChangeAdvisors_info'                    : 'Ändert das Aussehen der Berater',
-        'str_ChangeAdvisors_hideButtons'             : 'Verstecke Premium-Buttons',
         'str_ChangeAdvisors_replaceAdvisors'         : 'Berater ersetzen',
         'str_ChangeAdvisors_cities'                  : 'Städte',
         'str_ChangeAdvisors_military'                : 'Militär',
@@ -73,44 +124,13 @@
         'str_ChangeAdvisors_femaleDiplomat'              : 'Diplomatin',
         'str_ChangeAdvisors_femaleDiplomatPremium'       : 'Diplomatin (Premium)',
 
-        // -- AntiAds
-        'str_AntiAds_name'                          : 'Anti Werbung',
-        'str_AntiAds_info'                          : 'Verstecke nervige Sachen',
-        'str_AntiAds_hideSpeedUpButton'             : 'Verstecke SpeedUp-Button',
-        'str_AntiAds_hideAdvertising'               : 'Verstecke Werbung',
-        'str_AntiAds_hideHappyHour'                 : 'Verstecke Happy-Hour Countdown',
-
         // -- MoveBuildings
-        'str_MoveBuildings_name'            : 'Gebäude versetzen',
-        'str_MoveBuildings_info'            : 'Ändere die Positionen deiner Gebäude',
-        'str_MoveBuildings_SavePositions'   : 'Positionen speichern',
-        'str_MoveBuildings_DragDropHint'    : '(Ändere die Positionen der Gebäude per Drag&Drop)',
-
-        // -- CustomTowns
-        'str_CustomTowns_name'                    : 'Städte anpassen',
-        'str_CustomTowns_info'                    : 'Verstecke Premium-Objekte oder positionier Gebäude neu',
-        'str_CustomTowns_tabSettings'             : 'Städte',
-        'str_CustomTowns_tabPositions'            : 'Gebäude-Positionen',
-        'str_CustomTowns_customPositionsDisabled' : 'Aktiviere zuerst die Option "Eigene Gebäude-Positionen"',
-        'str_CustomTowns_confirmSaveChanged'      : 'Geänderte Positionen speichern?',
-        'str_CustomTowns_hideCapitalBackground'   : 'Kein eigener Hintergrund für Hauptstadt',
-        'str_CustomTowns_hidePirateFortress'      : 'Verstecke Piratenfestung',
-        'str_CustomTowns_hideLockedPosition'      : 'Verstecke gesperrten Bauplatz',
-        'str_CustomTowns_hideWalkers'             : 'Verstecke Wanderer',
-        'str_CustomTowns_NoAnimPointerEvents'     : 'Ignoriere Maus-Events für Animationen/Walker (deaktiviert Sprechblasen)',
-        'str_CustomTowns_restrictedPosition'      : 'Kann dort nicht platziert werden',
-        'str_CustomTowns_useCustomPositions'      : 'Eigene Gebäude-Positionen',
-        'str_CustomTowns_customBackground'        : 'Benutzerdefinierter Hintergrund für alle Städte',
-        'str_CustomTowns_hideDailyTasks'                : 'Verstecke tägliche Aufgaben',
-        'str_CustomTowns_hideRegistrationGifts'         : 'Verstecke tägliche Geschenke',
-        'str_CustomTowns_hideFlyingShop'                : 'Verstecke fliegendes Premium-Schiff',
-        'str_CustomTowns_hideAmbrosiaFountain'          : 'Verstecke Ambrosiabrunnen',
-
-        // -- TweakResource
-        'str_TweakResources_name'                   : 'Ressourcen',
-        'str_TweakResources_info'                   : 'Lässt Dir fehlende Ressourcen anzeigen',
-        'str_TweakResources_showMissing'            : 'Fehlende Ressourcen anzeigen',
-        'str_TweakResources_showRemaining'          : 'Verbleibende Ressourcen anzeigen',
+        'str_MoveBuildings_name'                : 'Gebäude versetzen',
+        'str_MoveBuildings_info'                : 'Ändere die Positionen deiner Gebäude',
+        'str_MoveBuildings_SavePositions'       : 'Positionen speichern',
+        'str_MoveBuildings_DragDropHint'        : '(Ändere die Positionen der Gebäude per Drag&Drop)',
+        'str_MoveBuildings_confirmSaveChanged'  : 'Geänderte Positionen speichern?',
+        'str_MoveBuildings_restrictedPosition'  : 'Dieses Gebäude kann dort nicht platziert werden',
 
         // -- Updatechecker
         'str_UpdateChecker_name'                    : 'UpdateChecker',
@@ -121,5 +141,7 @@
         'str_UpdateChecker_versionUpToDate'         : 'Version ist aktuell',
         'str_UpdateChecker_HowDoesThisWork'         : 'Wie dies funktioniert: IkaTweaks lädt zu Deiner eigenen Sicherheit kein externes Script, sondern ein kleines Bild von GitHub, mit dessen Breite und Höhe überprüft wird ob eine neue Version verfügbar ist ;)',
         'str_UpdateChecker_linksHeader'             : 'Die neuste Version gibt es immer hier:',
+        'str_UpdateChecker_checkFailed'             : 'Konnte Version nicht überprüfen',
+        'str_UpdateChecker_autoCheck'               : 'Überprüfe Version automatisch',
 
     });
