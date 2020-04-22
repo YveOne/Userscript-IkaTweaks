@@ -6,6 +6,8 @@
         'str_IkaTweaks_menu'        : 'IkaTweaks Menu',
         'str_IkaTweaks_tabModules'  : 'Modules',
         'str_IkaTweaks_tabAbout'    : 'About & Credits',
+        'str_IkaTweaks_version'     : 'Version',
+        'str_IkaTweaks_changelog'   : 'Changelog',
 
         'str_modules'           : 'Modules',
         'str_enabled'           : 'Enabled',
@@ -32,6 +34,14 @@
         'str_IkaTweaks_aboutText2'  : 'Questions, ideas, bugs or complaints? Email me at <span id="myEmail"></span> or visit me at: ',
         'str_IkaTweaks_aboutCredits': 'The used OnePiece images can be found on: <a id="creditUrl1"></a>',
 
+        'str_versionForceCheck'         : 'Check now',
+        'str_versionLastCheckResult'    : 'Last result',
+        'str_versionNewAvailable'       : 'New version available',
+        'str_versionUpToDate'           : 'Version is up to date',
+        'str_versionGetNewestHere'      : 'Get the newest versions here',
+        'str_versionCheckFailed'        : 'Checking failed',
+        'str_versionAutoCheck'          : 'Activate automatic checks',
+
         // -- GeneralTweaks
         'str_GeneralTweaks_name'                : 'General tweaks',
         'str_GeneralTweaks_info'                : 'Change CSS rules or remove objects and advertising',
@@ -42,10 +52,9 @@
         'str_GeneralTweaks_fixWindowTopPadding'             : 'Fix window top padding (looks nicer)',
         'str_GeneralTweaks_fixScrollbars'                   : 'Fix scrollbars',
         'str_GeneralTweaks_fixHoverEffectSwitching'         : 'Fix hover effects switching while mouseover on page load',
-        'str_GeneralTweaks_fixHoverToBackground'            : 'Move mouseover effect into background (fixes display bugs)',
         // -- GeneralTweaks - antiAds
         'str_GeneralTweaks_antiAds'                     : 'Anti Advertising',
-        'str_GeneralTweaks_adsHideSpeedUpButton'            : 'Remove speed-up buttons',
+        'str_GeneralTweaks_adsHideSpeedUpButtons'           : 'Remove speed-up buttons',
         'str_GeneralTweaks_adsHideWindowAds'                : 'Remove window ads',
         'str_GeneralTweaks_adsHideHappyHour'                : 'Remove happy hour timer',
         'str_GeneralTweaks_adsHideOfferBoxes'               : 'Remove premium offer boxes',
@@ -54,6 +63,7 @@
         'str_GeneralTweaks_adsHideArchiveButtons'           : 'Remove archive buttons in messages window',
         'str_GeneralTweaks_adsHideMilitaryDummies'          : 'Remove military dummy boxes',
         'str_GeneralTweaks_adsHideAdvisorButtons'           : 'Remove advisor premium buttons',
+        'str_GeneralTweaks_adsHideToolbarMMOAds'            : 'Remove toolbar MMO ads',
         // -- GeneralTweaks - animations
         'str_GeneralTweaks_animations'                  : 'Animations',
         'str_GeneralTweaks_animHideWalkers'                 : 'Hide all walkers and birds',
@@ -71,18 +81,27 @@
         'str_GeneralTweaks_cityHideFlyingShop'              : 'Hide flying premium shop',
         'str_GeneralTweaks_cityHideAmbrosiaFountain'        : 'Hide ambrosia fountain',
         // -- GeneralTweaks - ressources
-        'str_GeneralTweaks_ressources'                  : 'Ressources',
-        'str_GeneralTweaks_ressShowMissing'                 : 'Show missing ressources',
-        'str_GeneralTweaks_ressShowRemaining'               : 'Show remainingr ressources',
+        'str_GeneralTweaks_resources'                   : 'Cost resources',
+        'str_GeneralTweaks_resShowMissing'                  : 'Show missing resources',
+        'str_GeneralTweaks_resShowRemaining'                : 'Show remaining resources',
         // -- GeneralTweaks - interactive
         'str_GeneralTweaks_interactive'                 : 'Interactive',
         'str_GeneralTweaks_actShowMouseoverPlaques'         : 'Show building name on plaque on mouse over',
         'str_GeneralTweaks_actPreventPlaqueScaling'         : 'Show plaques always at full size',
         'str_GeneralTweaks_actHideMouseoverTitles'          : 'Hide default titles on mouse over',
+        'str_GeneralTweaks_cityHoverToBackground'           : 'Move mouseover effect into background in cities (fixes display bugs)',
+        'str_GeneralTweaks_islandHoverToBackground'         : 'Move mouseover effect into background on islands',
+        // -- GeneralTweaks - fleets
+        'str_GeneralTweaks_fleets'                      : 'Fleet movements',
+        'str_GeneralTweaks_fleetHideSpeedColumn'            : 'Hide speed column',
+        'str_GeneralTweaks_fleetHidePremiumFleetInfo'       : 'Hide premium fleet info',
+        'str_GeneralTweaks_fleetShowCapacities'             : 'Show Capacities',
+
+
 
         // -- CityListing
-        'str_CityListing_name'                  : 'City Listing',
-        'str_CityListing_info'                  : 'Extends your city dropdown menu',
+        'str_CityListing_name'                  : 'Enhanced City Listing',
+        'str_CityListing_info'                  : 'Change city order, show tradegoods or hide coords',
         'str_CityListing_hideCoords'            : 'Hide Coords',
         'str_CityListing_showTradegoods'        : 'Show Tradegoods',
         'str_CityListing_highlightSelected'     : 'Highlight selected city',
@@ -90,9 +109,8 @@
         'str_CityListing_sortEverywhere'        : 'Use custom sorting everywhere (palace, museum, ...)',
 
         // -- ChangeAdvisors
-        'str_ChangeAdvisors_name'                    : 'Change Advisors',
-        'str_ChangeAdvisors_info'                    : 'Change appearance of your advisors',
-        'str_ChangeAdvisors_replaceAdvisors'         : 'Replace advisors',
+        'str_ChangeAdvisors_name'                    : 'Individual advisors',
+        'str_ChangeAdvisors_info'                    : 'Change the appearance of your advisors separately',
         'str_ChangeAdvisors_cities'                  : 'Cities',
         'str_ChangeAdvisors_military'                : 'Military',
         'str_ChangeAdvisors_research'                : 'Research',
@@ -133,17 +151,5 @@
         'str_MoveBuildings_DragDropHint'        : '(Change positions by drag&drop them onto each other)',
         'str_MoveBuildings_confirmSaveChanged'  : 'Save changed positions?',
         'str_MoveBuildings_restrictedPosition'  : 'That building cannot be placed there',
-
-        // -- Updatechecker
-        'str_UpdateChecker_name'                    : 'UpdateChecker',
-        'str_UpdateChecker_info'                    : 'Check for new version of IkaTweaks',
-        'str_UpdateChecker_forceNow'                : 'Check now',
-        'str_UpdateChecker_lastResult'              : 'Last result',
-        'str_UpdateChecker_newVersionAvailable'     : 'New version available',
-        'str_UpdateChecker_versionUpToDate'         : 'Version is up to date',
-        'str_UpdateChecker_HowDoesThisWork'         : 'How does this work: For your own safety IkaTweaks does NOT load any extern scripts but a tiny image from GitHub. With its weight and height it will be checked if a new version is available or not ;)',
-        'str_UpdateChecker_linksHeader'             : 'Here you will get always the newest version:',
-        'str_UpdateChecker_checkFailed'             : 'Checking failed',
-        'str_UpdateChecker_autoCheck'               : 'Activate automatic checks',
 
     });

@@ -4,7 +4,7 @@
 //
 // @name            IkaTweaks
 // @description     Improvements for Ikariam
-// @version         2.2
+// @version         2.3
 // @author          Yvonne P.
 // @license         MIT; https://opensource.org/licenses/MIT
 // @icon            http://de.ikariam.gameforge.com/favicon.ico
@@ -316,6 +316,11 @@
     const IkaTweaks = {};
     (function(IkaTweaks){
 
+        var coreData = jsonDecode(LS.load('Core'), {});
+        function coreDataSave() {
+            LS.save('Core', JSON.stringify(coreData));
+        }
+
         const mainViewIcon = 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/mainViewIcon.png';
         var enabledModules = jsonDecode(LS.load('modules'), {});
         var definedModules = {};
@@ -361,7 +366,6 @@
             sidebarButtons.push({text:btnText,func:btnFunc,useTop:useTop});
         };
 
-
         IkaTweaks.success = function(t) {
             if (!t) {
                 t = LANG('str_success'+randomInclusive(0,4));
@@ -404,6 +408,7 @@
                     $('#IkaTweaksSidebar_button'+i).click(sidebarButtons[i].func);
                 }
 
+                $('table.table01 tr').not(':even').addClass('alt');
                 ikariam.controller.replaceCheckboxes();
                 ikariam.controller.replaceDropdownMenus();
                 if(typeof cb == 'function') cb();
@@ -428,12 +433,14 @@
             <button id="{btnId}" class="button">{btnText}</button>
         `);
 
-        TPL.set('IkaTweaksMainview_tabbedWindow', `
+        TPL.set('IkaTweaks_tabbedWindow', `
             <div id="mainview">
                 <div class="buildingDescription"><h1>{str_IkaTweaks_menu}</h1></div>
                 <ul class="tabmenu">
-                    <li class="tab" id="js_tab_IkaTweaksMainview_modulesWindow"><b>{str_IkaTweaks_tabModules}</b></li>
-                    <li class="tab" id="js_tab_IkaTweaksMainview_aboutWindow"><b>{str_IkaTweaks_tabAbout}</b></li>
+                    <li class="tab" id="js_tab_IkaTweaks_modulesWindow"><b>{str_IkaTweaks_tabModules}</b></li>
+                    <li class="tab" id="js_tab_IkaTweaks_aboutWindow"><b>{str_IkaTweaks_tabAbout}</b></li>
+                    <li class="tab" id="js_tab_IkaTweaks_versionWindow"><b>{str_IkaTweaks_version}</b></li>
+                    <li class="tab" id="js_tab_IkaTweaks_changelogWindow"><b>{str_IkaTweaks_changelog}</b></li>
                 </ul>
                 <div>
                     {mainviewContent}
@@ -441,11 +448,11 @@
             </div>
         `);
 
-        TPL.set('IkaTweaksMainview_modulesWindow', `
+        TPL.set('IkaTweaks_modulesWindow', `
             <div class="contentBox01h" style="z-index: 101;">
                 <h3 class="header">{str_IkaTweaks_tabModules}</h3>
                 <div class="content">
-                    <table id="IkaTweaks_modulesTable" class="table01"><tbody>
+                    <table class="table01"><tbody>
                         <tr>
                             <th style="width:50px;">{str_enabled}</th>
                             <th style="width:200px;">{str_name}</th>
@@ -465,7 +472,7 @@
             </div>
         `);
 
-        TPL.set('IkaTweaksMainview_tabbedWindow_modulesTR', `
+        TPL.set('IkaTweaks_modulesTR', `
             <tr class="{trClass}">
                 <td><input id="IkaTweaksMainview_Checkbox{modId}" type="checkbox" class="notifications checkbox" {checked}></td>
                 <td>{modName}</td>
@@ -473,7 +480,7 @@
             </tr>
         `);
 
-        TPL.set('IkaTweaksMainview_aboutWindow', `
+        TPL.set('IkaTweaks_aboutWindow', `
             <div class="contentBox01h" style="z-index: 101;">
                 <div class="header" style="height:0px;"></div>
                 <div class="content">
@@ -533,13 +540,188 @@
             </div>
         `);
 
-        var showSettingsWindow, showAboutWindow, tutorialHintInterval;
+        TPL.set('IkaTweaks_versionWindow', `
+            <div class="contentBox01h">
+                <h3 class="header">{str_IkaTweaks_version}</h3>
+                <div class="content">
+                    <table class="table01 left"><tbody>
+                        {settingsTR}
+                        <tr>
+                            <th colspan="2">
+                                <div class="centerButton">
+                                    <input id="js_IkaTweaks_saveVersionSettingsButton" type="button" class="button" value="{str_save}" />
+                                </div>
+                            </th>
+                        </tr>
+                    </tbody></table>
+                </div>
+                <div class="footer"></div>
+            </div>
+            <div class="contentBox01h">
+                <h3 class="header hidden"></h3>
+                <div class="content">
+                    <table class="table01" id="IkaTweaks_newVersionsTable">
+                        <tr>
+                            <th class="left" style="width:150px;">
+                                <input id="js_IkaTweaks_versionCheckButton" style="width:150px;" type="button" class="button" value="{str_versionForceCheck}" />
+                            </th>
+                            <th class="left">
+                                {str_versionLastCheckResult}: {lastResult}
+                            </th>
+                        </tr>
+                    </table>
+                </div>
+                <div class="footer"></div>
+            </div>
+            <div class="contentBox01h" style="z-index: 101;display:none;" id="js_IkaTweaks_newVersionLinks">
+                <h3 class="header">{str_versionGetNewestHere}</h3>
+                <div class="content">
+                    <table class="table01">
+                        <tr>
+                            <th class="center">
+                                <div class="centerButton">
+                                    <a id="js_IkaTweaks_openGreasyForkButton" class="button">{str_ToGreasyForkText}</a>
+                                    <a id="js_IkaTweaks_openOpenUserJSButton" class="button">{str_ToOpenUserJSText}</a>
+                                    <a id="js_IkaTweaks_openGitHubRepoButton" class="button">{str_ToGitHubRepoText}</a>
+                                </div>
+                            </th>
+                        </tr>
+                    </table>
+                </div>
+                <div class="footer"></div>
+            </div>
+        `);
+
+        TPL.set('IkaTweaks_settingTR', `
+            <tr>
+                <td width="50"><input id="IkaTweaks_settingCheckbox{id}" type="checkbox" class="checkbox" {checked}></td>
+                <td>{text}</td>
+            </tr>
+        `);
+
+        TPL.set('IkaTweaks_changelogWindow', `
+            <div class="contentBox01h">
+                <h3 class="header">{str_IkaTweaks_changelog}</h3>
+                <div class="content">
+                    <table class="table01" id="js_IkaTweaks_changelogTable">
+
+                    </table>
+                </div>
+                <div class="footer"></div>
+            </div>
+        `);
+
+        if(typeof coreData.versionLastCheck     == 'undefined') coreData.versionLastCheck   = 0;
+        if(typeof coreData.versionAutoCheck     == 'undefined') coreData.versionAutoCheck   = false;
+        var versionNow = false;
+        var versionNew = false;
+        var versionCheckResult = '-';
+        (function(v){
+            versionNow = [
+                parseInt(v[0]), // major
+                parseInt(v[1]), // minor
+            ];
+        })(GM_info.script.version.match(/\d+/g));
+
+        function versionCheck(onSuccess, onError) {
+            var image = new Image();
+            image.onload = function(){
+                var versionChk = [ image.width-1, image.height-1 ];
+                if ((versionChk[0] > versionNow[0]) || (versionChk[0] === versionNow[0] && versionChk[1] > versionNow[1])) {
+                    versionCheckResult = '{str_versionNewAvailable}: v'+versionChk.join('.');
+                    versionNew = versionChk;
+                    onSuccess(true);
+                } else {
+                    versionCheckResult = '{str_versionUpToDate}';
+                    onSuccess(false);
+                }
+            };
+            image.onerror = onError;
+            image.src = 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/versions/versionImage.gif';
+            coreData.versionLastCheck = timestamp();
+            coreDataSave();
+        }
+
+        function versionAutoCheck() {
+            if (coreData.versionAutoCheck) {
+                if (coreData.versionLastCheck < timestamp()-86400) {
+                    versionCheck(function(result) {
+                        if (result) {
+                            alert('IkaTweaks: ' + versionCheckResult);
+                        }
+                    });
+                }
+                setTimeout(versionAutoCheck, 3600);
+            }
+        }
+        setTimeout(versionAutoCheck, 3600);
+        versionAutoCheck();
+
+        function versionShowNewList(cb) {
+            var table = $('#IkaTweaks_newVersionsTable');
+            var curMajor = versionNow[0];
+            var curMinor = versionNow[1]+1;
+            var newMajor = versionNew[0];
+            var newMinor = versionNew[1];
+            if (newMajor > curMajor) {
+                curMajor = newMajor;
+                curMinor = 0;
+            }
+            function loop() {
+                var image = new Image();
+                image.onload = function(){
+                    table.append($('<tr></tr>').append($('<td colspan="2" class="left"></td>').append(image)));
+                    curMinor++;
+                    loop();
+                };
+                image.onerror = function(){
+                    $('#js_IkaTweaks_newVersionLinks').show();
+                    ikariam.controller.adjustSizes();
+                    if (cb) cb();
+                };
+                //image.src = 'https://github.com/YveOne/Userscript-IkaTweaks/blob/master/versions/version'+curMajor+'.'+curMinor+'.png?raw=true';
+                image.src = 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/versions/version'+curMajor+'.'+curMinor+'.png';
+            }
+            loop();
+        }
+
+        function changelogShowList(cb) {
+            var table = $('#js_IkaTweaks_changelogTable');
+            var curMajor = versionNow[0];
+            var curMinor = 0;
+            function loop() {
+                var image = new Image();
+                image.onload = function(){
+                    table.append($('<tr></tr>').append($('<td colspan="2" class="left"></td>').append(image)));
+                    curMinor++;
+                    loop();
+                };
+                //image.src = 'https://github.com/YveOne/Userscript-IkaTweaks/blob/master/versions/version'+curMajor+'.'+curMinor+'.png?raw=true';
+                image.src = 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/versions/version'+curMajor+'.'+curMinor+'.png';
+            }
+            loop();
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+        var tutorialHintInterval;
+        var showSettingsWindow, showAboutWindow;
+        var showVersionWindow, showChangelogWindow;
 
         showSettingsWindow = function(){
-            IkaTweaks.changeHTML('IkaTweaks', TPL.get('IkaTweaksMainview_tabbedWindow', {
-                mainviewContent: TPL.get('IkaTweaksMainview_modulesWindow', {
+            IkaTweaks.changeHTML('IkaTweaks', TPL.get('IkaTweaks_tabbedWindow', {
+                mainviewContent: TPL.get('IkaTweaks_modulesWindow', {
                     modulesTR: TPL.getEach(definedModules, function(mod, modId){
-                        return ['IkaTweaksMainview_tabbedWindow_modulesTR', {
+                        return ['IkaTweaks_modulesTR', {
                             modId   : modId,
                             modName : mod.name,
                             modInfo : mod.info,
@@ -548,10 +730,11 @@
                     }),
                 }),
             }), function(){
-                $('#IkaTweaks_modulesTable tr').not(':even').addClass('alt');
-                $('#js_tab_IkaTweaksMainview_modulesWindow').addClass('selected');
-                $('#js_tab_IkaTweaksMainview_modulesWindow').click(showSettingsWindow);
-                $('#js_tab_IkaTweaksMainview_aboutWindow').click(showAboutWindow);
+                $('#js_tab_IkaTweaks_modulesWindow').click(showSettingsWindow);
+                $('#js_tab_IkaTweaks_aboutWindow').click(showAboutWindow);
+                $('#js_tab_IkaTweaks_versionWindow').click(showVersionWindow);
+                $('#js_tab_IkaTweaks_changelogWindow').click(showChangelogWindow);
+                $('#js_tab_IkaTweaks_modulesWindow').addClass('selected');
                 $('#js_IkaTweaks_saveModulesButton').click(function(){
                     var l = {};
                     forEach(definedModules, (_, modId) => {
@@ -574,14 +757,16 @@
 
             var LangSelect = new SelectDropDown('IkaTweaks_Languages', 175, LANG.codes(), LANG.local());
 
-            IkaTweaks.changeHTML('IkaTweaks', TPL.get('IkaTweaksMainview_tabbedWindow', {
-                mainviewContent: TPL.get('IkaTweaksMainview_aboutWindow', {
+            IkaTweaks.changeHTML('IkaTweaks', TPL.get('IkaTweaks_tabbedWindow', {
+                mainviewContent: TPL.get('IkaTweaks_aboutWindow', {
                     select  : LangSelect.tpl(),
                 }),
             }), function(){
-                $('#js_tab_IkaTweaksMainview_aboutWindow').addClass('selected');
-                $('#js_tab_IkaTweaksMainview_modulesWindow').click(showSettingsWindow);
-                $('#js_tab_IkaTweaksMainview_aboutWindow').click(showAboutWindow);
+                $('#js_tab_IkaTweaks_modulesWindow').click(showSettingsWindow);
+                $('#js_tab_IkaTweaks_aboutWindow').click(showAboutWindow);
+                $('#js_tab_IkaTweaks_versionWindow').click(showVersionWindow);
+                $('#js_tab_IkaTweaks_changelogWindow').click(showChangelogWindow);
+                $('#js_tab_IkaTweaks_aboutWindow').addClass('selected');
                 $('#js_IkaTweaks_saveLanguageButton').click(function(){
                     LS.save('LANG', LangSelect.val());
                     LS.save('reopenSettingWindow', '1');
@@ -614,6 +799,90 @@
 
             });
         };
+
+        showVersionWindow = function(){
+            var checkboxes = {
+                versionAutoCheck    : coreData.versionAutoCheck,
+            };
+            IkaTweaks.changeHTML('IkaTweaks', TPL.get('IkaTweaks_tabbedWindow', {
+                mainviewContent: TPL.get('IkaTweaks_versionWindow', {
+                    lastResult: versionCheckResult,
+                    settingsTR: TPL.getEach(checkboxes, function(checked, k){
+                        return ['IkaTweaks_settingTR', {
+                            id      : k,
+                            text    : '{str_'+k+'}',
+                            checked : (checked) ? 'checked="checked"' : '',
+                        }];
+                    }),
+                }),
+            }), function(){
+                $('#js_tab_IkaTweaks_modulesWindow').click(showSettingsWindow);
+                $('#js_tab_IkaTweaks_aboutWindow').click(showAboutWindow);
+                $('#js_tab_IkaTweaks_versionWindow').click(showVersionWindow);
+                $('#js_tab_IkaTweaks_changelogWindow').click(showChangelogWindow);
+                $('#js_tab_IkaTweaks_versionWindow').addClass('selected');
+
+                $('#js_IkaTweaks_openGreasyForkButton').attr({
+                    'href': _LINKS_.GreasyFork,
+                    'target': '_blank',
+                });
+                $('#js_IkaTweaks_openOpenUserJSButton').attr({
+                    'href': _LINKS_.OpenUserJS,
+                    'target': '_blank',
+                });
+                $('#js_IkaTweaks_openGitHubRepoButton').attr({
+                    'href': _LINKS_.GitHubRepo,
+                    'target': '_blank',
+                });
+
+                $('#js_IkaTweaks_versionCheckButton').click(function(){
+                    $('#js_IkaTweaks_versionCheckButton').attr('disabled', 'disabled');
+                    versionCheck(function(result){
+                        showVersionWindow();
+                        IkaTweaks.success();
+                    },function(){
+                        IkaTweaks.warning(LANG('str_UpdateChecker_checkFailed'));
+                    });
+                });
+                $('#js_IkaTweaks_saveVersionSettingsButton').click(function(){
+                    forEach(checkboxes, (_, k) => {
+                        coreData[k] = isChecked('#IkaTweaks_settingCheckbox'+k);
+                    });
+                    coreDataSave();
+                    IkaTweaks.success();
+                });
+                if (versionNew) {
+                    versionShowNewList();
+                }
+            });
+        };
+
+        showChangelogWindow = function(){
+            var checkboxes = {
+                versionAutoCheck    : coreData.versionAutoCheck,
+            };
+            IkaTweaks.changeHTML('IkaTweaks', TPL.get('IkaTweaks_tabbedWindow', {
+                mainviewContent: TPL.get('IkaTweaks_changelogWindow', {
+                }),
+            }), function(){
+                $('#js_tab_IkaTweaks_modulesWindow').click(showSettingsWindow);
+                $('#js_tab_IkaTweaks_aboutWindow').click(showAboutWindow);
+                $('#js_tab_IkaTweaks_versionWindow').click(showVersionWindow);
+                $('#js_tab_IkaTweaks_changelogWindow').click(showChangelogWindow);
+                $('#js_tab_IkaTweaks_changelogWindow').addClass('selected');
+                changelogShowList();
+            });
+        };
+
+
+
+
+
+
+
+
+
+
 
         waitFor(function(){
             return (typeof $ != 'undefined');
@@ -677,7 +946,7 @@
         if(typeof modData.fixHoverEffectSwitching   == 'undefined') modData.fixHoverEffectSwitching     = true;
 
         // anti ads
-        if(typeof modData.adsHideSpeedUpButton      == 'undefined') modData.adsHideSpeedUpButton        = false;
+        if(typeof modData.adsHideSpeedUpButtons     == 'undefined') modData.adsHideSpeedUpButtons       = modData.adsHideSpeedUpButton || false;
         if(typeof modData.adsHideWindowAds          == 'undefined') modData.adsHideWindowAds            = true;
         if(typeof modData.adsHideHappyHour          == 'undefined') modData.adsHideHappyHour            = false;
         if(typeof modData.adsHideOfferBoxes         == 'undefined') modData.adsHideOfferBoxes           = true;
@@ -686,6 +955,7 @@
         if(typeof modData.adsHideArchiveButtons     == 'undefined') modData.adsHideArchiveButtons       = false;
         if(typeof modData.adsHideMilitaryDummies    == 'undefined') modData.adsHideMilitaryDummies      = false;
         if(typeof modData.adsHideAdvisorButtons     == 'undefined') modData.adsHideAdvisorButtons       = false;
+        if(typeof modData.adsHideToolbarMMOAds      == 'undefined') modData.adsHideToolbarMMOAds        = false;
 
         // animations
         if(typeof modData.animHideWalkers           == 'undefined') modData.animHideWalkers         = false;
@@ -704,20 +974,22 @@
         if(typeof modData.cityHideAmbrosiaFountain      == 'undefined') modData.cityHideAmbrosiaFountain    = true;
 
         // ressources
-        if(typeof modData.ressShowMissing               == 'undefined') modData.ressShowMissing     = true;
-        if(typeof modData.ressShowRemaining             == 'undefined') modData.ressShowRemaining   = false;
+        if(typeof modData.resShowMissing                == 'undefined') modData.resShowMissing      = modData.ressShowMissing || true;
+        if(typeof modData.resShowRemaining              == 'undefined') modData.resShowRemaining    = modData.ressShowRemaining || false;
 
         // interactive
-        if(typeof modData.fixHoverToBackground          == 'undefined') modData.fixHoverToBackground        = false;
+        if(typeof modData.cityHoverToBackground         == 'undefined') modData.cityHoverToBackground       = modData.fixHoverToBackground || false;
+        if(typeof modData.islandHoverToBackground       == 'undefined') modData.islandHoverToBackground     = modData.fixHoverToBackground || false;
         if(typeof modData.actShowMouseoverPlaques       == 'undefined') modData.actShowMouseoverPlaques     = false;
         if(typeof modData.actHideMouseoverTitles        == 'undefined') modData.actHideMouseoverTitles      = false;
         if(typeof modData.actPreventPlaqueScaling       == 'undefined') modData.actPreventPlaqueScaling     = false;
 
+        // fleets
+        if(typeof modData.fleetHideSpeedColumn          == 'undefined') modData.fleetHideSpeedColumn        = false;
+        if(typeof modData.fleetHidePremiumFleetInfo     == 'undefined') modData.fleetHidePremiumFleetInfo   = false;
+        if(typeof modData.fleetShowCapacities           == 'undefined') modData.fleetShowCapacities         = false;
 
-
-        //
-        // cities
-        //
+        ///////////////////////////////////////////////////////////////////////
 
         const CITY_BACKGROUNDS_COUNT = 5;
         const CITY_BACKGROUNDS = [
@@ -786,15 +1058,36 @@
             },
         ];
 
+        const UNIT_WEIGHTS = {
+            ship_transport: -500,
+
+            slinger: 3,
+            archer: 5,
+            marksman: 5,
+            spearman: 3,
+            swordsman: 3,
+            phalanx: 5,
+            steamgiant: 15,
+            gyrocopter: 15,
+            bombardier: 30,
+            ram: 30,
+            catapult: 30,
+            mortar: 30,
+            cook: 20,
+            medic: 10,
+            spartan: 5,
+
+            wood: 1,
+            wine: 1,
+            marble: 1,
+            glass: 1,
+            sulfur: 1,
+        };
 
 
 
 
 
-
-        //
-        // interactive
-        //
 
         function actRescalePlaques() {
             switch(ikariam.backgroundView.id) {
@@ -838,9 +1131,12 @@
                         $('#js_CityPosition'+pos+'Scroll').css('display', 'block');
                         $('#js_CityPosition'+pos+'Scroll').css('pointer-events', 'none');
                         $('#js_CityPosition'+pos+'ScrollName').text(title);
+                        $(this)[0]._tweakInterval = setInterval(() => {
+                            $('#js_CityPosition'+pos+'ScrollName').text(title);
+                        }, 1000);
                     }
                     if (modData.actHideMouseoverTitles) {
-                        $(this).attr('title', null);
+                        $(this).attr('title', '');
                         $(this).attr('_title', title);
                     }
                     break;
@@ -848,7 +1144,7 @@
                 case 'island':
                     if (modData.actHideMouseoverTitles) {
                         var title = $(this).attr('title');
-                        $(this).attr('title', null);
+                        $(this).attr('title', '');
                         $(this).attr('_title', title);
                     }
                     break;
@@ -869,6 +1165,8 @@
                     if (modData.fixHoverEffectSwitching) {
                         $('#position'+pos+' .img_pos.hover').addClass('invisible');
                     }
+                    clearInterval($(this)[0]._tweakInterval);
+                    $(this)[0]._tweakInterval = null;
                     break;
 
                 case 'island':
@@ -887,35 +1185,49 @@
             switch(ikariam.backgroundView.id) {
 
                 case 'city':
-                    if (modData.actShowMouseoverPlaques) {
-                        $('#city #locations .building a:not([_title])').each(function() {
+                    if (modData.actShowMouseoverPlaques
+                     || modData.actHideMouseoverTitles
+                     || modData.fixHoverEffectSwitching) {
+                        $('#city #locations .building a:not([_tweaked])').each(function() {
                             $(this).on('mouseover', actOnMouseover);
                             $(this).on('mouseout', actOnMouseout);
+                            $(this).attr('_tweaked', '1');
                         });
                     } else {
-                        $('#city #locations .building a[_title]').each(function() {
+                        $('#city #locations .building a[_tweaked]').each(function() {
                             $(this).off('mouseover');
                             $(this).off('mouseout');
-                            var title = $(this).attr('_title');
-                            $(this).attr('title', title);
-                            $(this).attr('_title', null);
+                            $(this).attr('_tweaked', null);
+                            actOnMouseout.call(this);
                         });
                     }
                     break;
 
                 case 'island':
-                    if (modData.actHideMouseoverTitles) {
-                        $('#island a.island_feature_img:not([_title])').each(function() {
+                    if (modData.actHideMouseoverTitles
+                     || modData.fixHoverEffectSwitching) {
+                        $('#island a.island_feature_img:not([_tweaked])').each(function() {
                             $(this).on('mouseover', actOnMouseover);
                             $(this).on('mouseout', actOnMouseout);
+                            $(this).attr('_tweaked', '1');
+                        });
+                        $('#island_heliosLocation a:not([_tweaked])').each(function() {
+                            $(this).on('mouseover', actOnMouseover);
+                            $(this).on('mouseout', actOnMouseout);
+                            $(this).attr('_tweaked', '1');
                         });
                     } else {
-                        $('#island a.island_feature_img[_title]').each(function() {
+                        $('#island a.island_feature_img[_tweaked]').each(function() {
                             $(this).off('mouseover');
                             $(this).off('mouseout');
-                            var title = $(this).attr('_title');
-                            $(this).attr('title', title);
-                            $(this).attr('_title', null);
+                            $(this).attr('_tweaked', null);
+                            actOnMouseout.call(this);
+                        });
+                        $('#island_heliosLocation a[_tweaked]').each(function() {
+                            $(this).off('mouseover');
+                            $(this).off('mouseout');
+                            $(this).attr('_tweaked', null);
+                            actOnMouseout.call(this);
                         });
                     }
                     break;
@@ -923,9 +1235,124 @@
             }
         }
 
+        function onViewChanged() {
+
+            if (modData.ressShowMissing || modData.ressShowRemaining) {
+                var res = {
+                    'wood':'resource',
+                    'wine':'1',
+                    'marble':'2',
+                    'glass':'3',
+                    'sulfur':'4',
+                };
+                $('#buildingUpgrade ul.resources li').each(function(i){
+                    var t = $(this);
+                    forEach(res, (v, k) => {
+                        if (t.hasClass(k)) {
+                            var req = parseInt(t.html().replace(/\D+/g,''));
+                            var cur = ikariam.model.currentResources[v];
+                            var lft = req-cur;
+                            if (lft>0) {
+                                if (modData.ressShowMissing) {
+                                    t.addClass('red bold').css({'line-height':'initial'});
+                                    t.append('<span style="display:block;font-weight:normal;font-size:10px;">-'+ikariam.model.shortenValue(lft,6)+'</span>');
+                                }
+                            } else {
+                                if(modData.ressShowRemaining) {
+                                    t.css({'line-height':'initial'});
+                                    t.append('<span class="green" style="display:block;font-weight:normal;font-size:10px;">+'+ikariam.model.shortenValue(lft*-1,6)+'</span>');
+                                }
+                            }
+                            return;
+                        }
+                    });
+                });
+            }
+
+            if (document.getElementById('militaryAdvisor')) {
+                waitFor(function(){
+                    try { return ikariam.templateView.viewScripts.militaryAdvisor; }
+                    catch(e) { return false; }
+                }, function(v){
+                    if (!v) return;
+
+                    if (modData.miliHidePremiumFleetInfo) {
+                        $('table.military_event_table td.spyMilitary.magnify_icon').each(function(){
+                            var t = $(this);
+                            if (t.find('.unit_detail_icon').length === 0) {
+                                t.css('opacity', 0);
+                                t.css('cursor', 'unset');
+                                t.attr('onclick', null);
+                            }
+                        });
+                        //$('table.military_event_table tr:not(.own) td.spyMilitary.magnify_icon').each(function(){
+                        //    var td = $(this);
+                        //    td.css('opacity', 0);
+                        //    td.css('cursor', 'unset');
+                        //    td.attr('onclick', null);
+                        //});
+                    }
+
+                    if (modData.fleetShowCapacities) {
+
+                        var ignoreClasses = ['unit_detail_icon','floatleft','icon40','bold','center','resource_icon'];
+                        $('table.military_event_table tr.own').each(function(){
+                            var tr = $(this);
+                            var space = 0;
+                            var used = 0;
+                            tr.find('div.unit_detail_icon').each(function(){
+                                var icon = $(this);
+                                var cls = icon[0].className.split(' ').filter((s) => {
+                                    return ignoreClasses.indexOf(s) === -1;
+                                }).join().trim();
+                                if (cls) {
+                                    var weight = UNIT_WEIGHTS[cls];
+                                    if (weight) {
+                                        weight *= forceInt(icon.text());
+                                        if (weight < 0) {
+                                            space -= weight;
+                                        } else {
+                                            used += weight;
+                                        }
+                                    } else {
+                                        // SHOULD NOT HAPPEN !!!
+                                    }
+                                } else {
+                                    // SHOULD NOT HAPPEN !!!
+                                }
+                            });
+                            $('td:nth-child(4)', this).append(`<div>${used} / ${space}</div>`);
+                        });
+                    }
+
+                }, 2000);
+            }
+        }
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        waitFor.ajaxResponder((ajaxResponder) => {
+            hookFunction(ajaxResponder, 'changeView', onViewChanged);
+            onViewChanged();
+        });
 
         waitFor(function(){
             try{
@@ -944,55 +1371,6 @@
             actSetHoverHandlers();
             actRescalePlaques();
         }, 2000, 33);
-
-
-
-
-
-
-        //
-        // ressources
-        //
-
-        function onViewChanged() {
-
-            var res = {
-                'wood':'resource',
-                'wine':'1',
-                'marble':'2',
-                'glass':'3',
-                'sulfur':'4',
-            };
-
-            $('#buildingUpgrade ul.resources li').each(function(i){
-                var t = $(this);
-                forEach(res, (v, k) => {
-                    if (t.hasClass(k)) {
-                        var req = parseInt(t.html().replace(/\D+/g,''));
-                        var cur = ikariam.model.currentResources[v];
-                        var lft = req-cur;
-                        if (lft>0) {
-                            if (modData.ressShowMissing) {
-                                t.addClass('red bold').css({'line-height':'initial'});
-                                t.append('<span style="display:block;font-weight:normal;font-size:10px;">-'+ikariam.model.shortenValue(lft,6)+'</span>');
-                            }
-                        } else {
-                            if(modData.ressShowRemaining) {
-                                t.css({'line-height':'initial'});
-                                t.append('<span class="green" style="display:block;font-weight:normal;font-size:10px;">+'+ikariam.model.shortenValue(lft*-1,6)+'</span>');
-                            }
-                        }
-                        return;
-                    }
-                });
-            });
-        }
-
-        waitFor.ajaxResponder((ajaxResponder) => {
-            hookFunction(ajaxResponder, 'changeView', onViewChanged);
-            onViewChanged();
-        });
-
 
 
 
@@ -1024,11 +1402,6 @@
                 css.push('#container .scroll_area { margin-right: 3px; }');
                 css.push('#container .scroll_area.scroll_disabled { margin-right: 0px; }');
             }
-            if (modData.fixHoverToBackground) {
-                css.push('#city #locations .img_pos.buildingimg { z-index: 2; pointer-events: none; }');
-                css.push('#city #locations .img_pos.constructionSite { z-index: 2; pointer-events: none; }');
-                //css.push('#island a.island_feature_img { z-index: 3; position: absolute; }');
-            }
 
             //
             // antiAds
@@ -1036,9 +1409,11 @@
             if (modData.adsHideHappyHour) {
                 css.push('div.btnIngameCountdown.happyHour  { height: 0; padding: 0; overflow: hidden; }'); // screw that display:block
             }
-            if (modData.adsHideSpeedUpButton) {
+            if (modData.adsHideSpeedUpButtons) {
                 css.push('#city #locations .timetofinish.buildingSpeedup { padding-right: 16px; pointer-events: none; }');
                 css.push('#city .buildingSpeedupButton { display: none; }');
+                css.push('#js_MilitaryMovementsFleetMovementsTable .action_icon.accLoading { display: none; }');
+                css.push('#js_MilitaryMovementsFleetMovementsTable .table01 .right br { display: none; }');
             }
             if (modData.adsHideSlotResourceShop) {
                 css.push('#container .slot_menu li.expandable.resourceShop { display: none !important; }');
@@ -1083,6 +1458,9 @@
                 css.push('#header #advisors a#js_GlobalMenu_militaryPremium   { display: none; }');
                 css.push('#header #advisors a#js_GlobalMenu_researchPremium   { display: none; }');
                 css.push('#header #advisors a#js_GlobalMenu_diplomacyPremium  { display: none; }');
+            }
+            if (modData.adsHideToolbarMMOAds) {
+                css.push('#GF_toolbar ul li:last-child  { display: none; }');
             }
 
             //
@@ -1150,72 +1528,109 @@
                     css.push('.phase'+(i+1)+'.isCapital #city_background_sw{background-image:url('+capitalBackgrounds[i].sw+')}');
                     css.push('.phase'+(i+1)+'.isCapital #city_background_se{background-image:url('+capitalBackgrounds[i].se+')}');
                 }
-
             }
+
+            //
+            // fleets
+            //
+            if (modData.fleetHideSpeedColumn) {
+                css.push('#js_MilitaryMovementsFleetMovementsTable table tr th:nth-child(3) { display: none; }');
+                css.push('#js_MilitaryMovementsFleetMovementsTable table tr td:nth-child(3) { display: none; }');
+            }
+
+            //
+            // interactive
+            //
+            if (modData.actHideMouseoverTitles) {
+                css.push('#island #cities .hover { pointer-events: none; }');
+            }
+            if (modData.cityHoverToBackground) {
+                css.push('#city #locations .img_pos.buildingimg { z-index: 2; pointer-events: none; }');
+                css.push('#city #locations .img_pos.constructionSite { z-index: 2; pointer-events: none; }');
+                //css.push('#island a.island_feature_img { z-index: 3; position: absolute; }');
+            }
+            if (modData.islandHoverToBackground) {
+                css.push('#island #cities .hover { position: absolute; z-index: -1; }');
+                css.push('#island #islandtradegood .hover { z-index: 0; }');
+                css.push('#island #islandtradegood .hover { z-index: 0; }');
+                css.push('#island #islandtradegood a { position: absolute; z-index: 1; }');
+            }
+
+
+
+
+
+
+
 
             if(cssElement) removeElement(cssElement);
             injectCSS(css.join(''), function(el){cssElement=el;});
         }
         updateCSS();
 
+
+
+
+
+        var categories = [
+            ['bugFixes', [
+                'fixResearchWindowList',
+                'fixCitySelectItems',
+                'fixWindowTopPadding',
+                'fixScrollbars',
+                'fixHoverEffectSwitching',
+            ]],
+            ['antiAds', [
+                'adsHideSpeedUpButtons',
+                'adsHideWindowAds',
+                'adsHideHappyHour',
+                'adsHideOfferBoxes',
+                'adsHideSlotResourceShop',
+                'adsHideSlotPremiumTrader',
+                'adsHideArchiveButtons',
+                'adsHideMilitaryDummies',
+                'adsHideAdvisorButtons',
+                'adsHideToolbarMMOAds',
+            ]],
+            ['animations', [
+                'animHideWalkers',
+                'animHideWalkerBubbles',
+                'animHideBirdsOnly',
+            ]],
+            ['cities', [
+                'cityIgnoreCapital',
+                'cityHidePirateFortress',
+                'cityHideLockedPosition',
+                'cityUseCustomBackground',
+                'cityHideDailyTasks',
+                'cityHideRegistrationGifts',
+                'cityHideFlyingShop',
+                'cityHideAmbrosiaFountain',
+            ]],
+            ['interactive', [
+                'actShowMouseoverPlaques',
+                'actHideMouseoverTitles',
+                'actPreventPlaqueScaling',
+                'cityHoverToBackground',
+                'islandHoverToBackground',
+            ]],
+            ['resources', [
+                'resShowMissing',
+                'resShowRemaining',
+            ]],
+            ['fleets', [
+                'fleetHideSpeedColumn',
+                'fleetHidePremiumFleetInfo',
+                'fleetShowCapacities',
+            ]],
+        ];
+
+
         TPL.set('GeneralTweaks_settingsWindow', `
             <div id="mainview">
                 <div class="buildingDescription"><h1>{str_GeneralTweaks_name}</h1></div>
                 <div>
-                    <div class="contentBox01h" style="z-index: 101;">
-                        <h3 class="header">{str_GeneralTweaks_bugFixes}</h3>
-                        <div class="content">
-                            <table id="GeneralTweaks_bugFixesTable" class="table01 left"><tbody>
-                                {bugFixesTR}
-                            </tbody></table>
-                        </div>
-                        <div class="footer"></div>
-                    </div>
-                    <div class="contentBox01h" style="z-index: 101;">
-                        <h3 class="header">{str_GeneralTweaks_antiAds}</h3>
-                        <div class="content">
-                            <table id="GeneralTweaks_antiAdsTable" class="table01 left"><tbody>
-                                {antiAdsTR}
-                            </tbody></table>
-                        </div>
-                        <div class="footer"></div>
-                    </div>
-                    <div class="contentBox01h" style="z-index: 101;">
-                        <h3 class="header">{str_GeneralTweaks_animations}</h3>
-                        <div class="content">
-                            <table id="GeneralTweaks_animationsTable" class="table01 left"><tbody>
-                                {animationsTR}
-                            </tbody></table>
-                        </div>
-                        <div class="footer"></div>
-                    </div>
-                    <div class="contentBox01h" style="z-index: 101;">
-                        <h3 class="header">{str_GeneralTweaks_cities}</h3>
-                        <div class="content">
-                            <table id="GeneralTweaks_citiesTable" class="table01 left"><tbody>
-                                {citiesTR}
-                            </tbody></table>
-                        </div>
-                        <div class="footer"></div>
-                    </div>
-                    <div class="contentBox01h" style="z-index: 101;">
-                        <h3 class="header">{str_GeneralTweaks_interactive}</h3>
-                        <div class="content">
-                            <table id="GeneralTweaks_interactiveTable" class="table01 left"><tbody>
-                                {interactiveTR}
-                            </tbody></table>
-                        </div>
-                        <div class="footer"></div>
-                    </div>
-                    <div class="contentBox01h" style="z-index: 101;">
-                        <h3 class="header">{str_GeneralTweaks_ressources}</h3>
-                        <div class="content">
-                            <table id="GeneralTweaks_ressourcesTable" class="table01 left"><tbody>
-                                {ressourcesTR}
-                            </tbody></table>
-                        </div>
-                        <div class="footer"></div>
-                    </div>
+                    {categories}
                     <div class="contentBox01h" style="z-index: 101;">
                         <h3 class="header hidden"></h3>
                         <div class="content">
@@ -1234,12 +1649,26 @@
                 </div>
             </div>
         `);
+
+        TPL.set('GeneralTweaks_category', `
+            <div class="contentBox01h" style="z-index: 101;">
+                <h3 class="header">{categoryTitle}</h3>
+                <div class="content">
+                    <table class="table01 left"><tbody>
+                        {categoryRows}
+                    </tbody></table>
+                </div>
+                <div class="footer"></div>
+            </div>
+        `);
+
         TPL.set('GeneralTweaks_settingTR', `
             <tr>
                 <td width="50"><input id="GeneralTweaks_settingCheckbox{id}" type="checkbox" class="notifications checkbox" {checked}></td>
                 <td>{text}</td>
             </tr>
         `);
+
         TPL.set('GeneralTweaks_settingSelectTR', `
             <tr>
                 <td width="50" style="vertical-align: top;"><input id="GeneralTweaks_settingCheckbox{id}" type="checkbox" class="notifications checkbox" {checked}></td>
@@ -1249,143 +1678,45 @@
 
         IkaTweaks.addSidebarButton('{str_GeneralTweaks_name}', function() {
 
-            var bugFixes = {
-                fixResearchWindowList   : modData.fixResearchWindowList,
-                fixCitySelectItems      : modData.fixCitySelectItems,
-                fixWindowTopPadding     : modData.fixWindowTopPadding,
-                fixScrollbars           : modData.fixScrollbars,
-                fixHoverEffectSwitching : modData.fixHoverEffectSwitching,
-                fixHoverToBackground    : modData.fixHoverToBackground,
-            };
-            var antiAds = {
-                adsHideSpeedUpButton        : modData.adsHideSpeedUpButton,
-                adsHideWindowAds            : modData.adsHideWindowAds,
-                adsHideHappyHour            : modData.adsHideHappyHour,
-                adsHideOfferBoxes           : modData.adsHideOfferBoxes,
-                adsHideSlotResourceShop     : modData.adsHideSlotResourceShop,
-                adsHideSlotPremiumTrader    : modData.adsHideSlotPremiumTrader,
-                adsHideArchiveButtons       : modData.adsHideArchiveButtons,
-                adsHideMilitaryDummies      : modData.adsHideMilitaryDummies,
-                adsHideAdvisorButtons       : modData.adsHideAdvisorButtons,
-            };
-            var animations = {
-                animHideWalkers             : modData.animHideWalkers,
-                animHideWalkerBubbles       : modData.animHideWalkerBubbles,
-                animHideBirdsOnly           : modData.animHideBirdsOnly,
-            };
-            var cities = {
-                cityIgnoreCapital   : modData.cityIgnoreCapital,
-                cityHidePirateFortress      : modData.cityHidePirateFortress,
-                cityHideLockedPosition      : modData.cityHideLockedPosition,
-                cityUseCustomBackground     : modData.cityUseCustomBackground,
-                cityHideDailyTasks          : modData.cityHideDailyTasks,
-                cityHideRegistrationGifts   : modData.cityHideRegistrationGifts,
-                cityHideFlyingShop          : modData.cityHideFlyingShop,
-                cityHideAmbrosiaFountain    : modData.cityHideAmbrosiaFountain,
-            };
-            var interactive = {
-                actShowMouseoverPlaques     : modData.actShowMouseoverPlaques,
-                actHideMouseoverTitles      : modData.actHideMouseoverTitles,
-                actPreventPlaqueScaling     : modData.actPreventPlaqueScaling,
-            };
-            var ressources = {
-                ressShowMissing             : modData.ressShowMissing,
-                ressShowRemaining           : modData.ressShowRemaining,
-            };
-
-            var cityCustomBackgroundList = [
-                '1',
-                '2',
-                '3',
-                '4',
-                '5',
-            ].map((level) => {
+            var cityCustomBackgroundList = [ '1', '2', '3', '4', '5' ].map((level) => {
                 return TPL.parse(LANG('str_GeneralTweaks_cityUseCustomBackgroundLevel'), {level:level});
             });
             var cityCustomBackgroundSelect = new SelectDropDown('GeneralTweaks_customBackgroundSelect', 95, cityCustomBackgroundList, modData.cityCustomBackground);
 
             IkaTweaks.changeHTML('GeneralTweaks', TPL.get('GeneralTweaks_settingsWindow', {
-  
-                    bugFixesTR: TPL.getEach(bugFixes, function(checked, k){
-                        return ['GeneralTweaks_settingTR', {
-                            id      : k,
-                            text    : '{str_GeneralTweaks_'+k+'}',
-                            checked : (checked) ? 'checked="checked"' : '',
-                        }];
-                    }),
-                    antiAdsTR: TPL.getEach(antiAds, function(checked, k){
-                        return ['GeneralTweaks_settingTR', {
-                            id      : k,
-                            text    : '{str_GeneralTweaks_'+k+'}',
-                            checked : (checked) ? 'checked="checked"' : '',
-                        }];
-                    }),
-                    animationsTR: TPL.getEach(animations, function(checked, k){
-                        return ['GeneralTweaks_settingTR', {
-                            id      : k,
-                            text    : '{str_GeneralTweaks_'+k+'}',
-                            checked : (checked) ? 'checked="checked"' : '',
-                        }];
-                    }),
-                    citiesTR: TPL.getEach(cities, function(checked, k){
-                        switch(k) {
-                            case 'cityUseCustomBackground':
-                                return ['GeneralTweaks_settingSelectTR', {
-                                    id      : k,
-                                    text    : '{str_GeneralTweaks_cityUseCustomBackground}',
-                                    checked : (checked) ? 'checked="checked"' : '',
-                                    selectContainer : cityCustomBackgroundSelect.tpl(),
-                                }];
-                            default:
-                                return ['GeneralTweaks_settingTR', {
-                                    id      : k,
-                                    text    : '{str_GeneralTweaks_'+k+'}',
-                                    checked : (checked) ? 'checked="checked"' : '',
-                                }];
-                        }
-                    }),
-                    interactiveTR: TPL.getEach(interactive, function(checked, k){
-                        return ['GeneralTweaks_settingTR', {
-                            id      : k,
-                            text    : '{str_GeneralTweaks_'+k+'}',
-                            checked : (checked) ? 'checked="checked"' : '',
-                        }];
-                    }),
-                    ressourcesTR: TPL.getEach(ressources, function(checked, k){
-                        return ['GeneralTweaks_settingTR', {
-                            id      : k,
-                            text    : '{str_GeneralTweaks_'+k+'}',
-                            checked : (checked) ? 'checked="checked"' : '',
-                        }];
-                    }),
-
+                categories: TPL.getEach(categories, function(category){
+                    var categoryId = category[0];
+                    var checkboxes = category[1];
+                    return ['GeneralTweaks_category', {
+                        categoryTitle: '{str_GeneralTweaks_'+categoryId+'}',
+                        categoryRows:  TPL.getEach(checkboxes, function(k){
+                            switch(k) {
+                                case 'cityUseCustomBackground':
+                                    return ['GeneralTweaks_settingSelectTR', {
+                                        id      : k,
+                                        text    : '{str_GeneralTweaks_'+k+'}',
+                                        checked : (modData[k]) ? 'checked="checked"' : '',
+                                        selectContainer : cityCustomBackgroundSelect.tpl(),
+                                    }];
+                                default:
+                                    return ['GeneralTweaks_settingTR', {
+                                        id      : k,
+                                        text    : '{str_GeneralTweaks_'+k+'}',
+                                        checked : (modData[k]) ? 'checked="checked"' : '',
+                                    }];
+                            }
+                        })
+                    }];
+                })
             }), function(){
-
-                $('#GeneralTweaks_bugFixesTable tr').not(':even').addClass('alt');
-                $('#GeneralTweaks_antiAdsTable tr').not(':even').addClass('alt');
-                $('#GeneralTweaks_animationsTable tr').not(':even').addClass('alt');
-                $('#GeneralTweaks_citiesTable tr').not(':even').addClass('alt');
-                $('#GeneralTweaks_interactiveTable tr').not(':even').addClass('alt');
-                $('#GeneralTweaks_ressourcesTable tr').not(':even').addClass('alt');
-
                 $('#js_GeneralTweaks_settingsButton').click(function(){
-                    forEach(bugFixes, (_, k) => {
+                    function forEachCheckBox(k) {
                         modData[k] = isChecked('#GeneralTweaks_settingCheckbox'+k);
-                    });
-                    forEach(antiAds, (_, k) => {
-                        modData[k] = isChecked('#GeneralTweaks_settingCheckbox'+k);
-                    });
-                    forEach(animations, (_, k) => {
-                        modData[k] = isChecked('#GeneralTweaks_settingCheckbox'+k);
-                    });
-                    forEach(cities, (_, k) => {
-                        modData[k] = isChecked('#GeneralTweaks_settingCheckbox'+k);
-                    });
-                    forEach(interactive, (_, k) => {
-                        modData[k] = isChecked('#GeneralTweaks_settingCheckbox'+k);
-                    });
-                    forEach(ressources, (_, k) => {
-                        modData[k] = isChecked('#GeneralTweaks_settingCheckbox'+k);
+                    }
+                    categories.forEach((category) => {
+                        var categoryId = category[0];
+                        var checkboxes = category[1];
+                        checkboxes.forEach(forEachCheckBox);
                     });
                     modData.cityCustomBackground = parseInt(cityCustomBackgroundSelect.val());
                     modDataSave();
@@ -1401,20 +1732,6 @@
 
     // MODULE: GeneralTweaks
     //--------------------------------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     //--------------------------------------------------------------------------------------------------
     // MODULE: CityListing
@@ -1606,7 +1923,7 @@
                     <div class="contentBox01h" style="z-index: 101;">
                         <h3 class="header hidden"></h3>
                         <div class="content">
-                            <table id="CityListing_settingTable" class="table01 left"><tbody>
+                            <table class="table01 left"><tbody>
                                 {settingsTR}
                                 <tr>
                                     <th colspan="2">
@@ -1635,7 +1952,7 @@
                 <td>{text}</td>
             </tr>
             <tr>
-                <td>
+                <td style="padding-left: 0;">
                     <table><tbody id="CityListing_sortingList"></tbody></table>
                     <table style="margin-top:5px;">{subTR}</table>
                 </td>
@@ -1680,7 +1997,6 @@
                 }),
             }), function(){
 
-                $('#CityListing_settingTable tr').not(':even').addClass('alt');
                 var CityListing_sortingList = $('#CityListing_sortingList');
 
                 var relatedCity, relatedCityData = ikariam.model.relatedCityData;
@@ -2010,7 +2326,7 @@
                     <div class="contentBox01h" style="z-index: 101;">
                         <h3 class="header hidden"></h3>
                         <div class="content">
-                            <table id="ChangeAdvisors_settingsTable" class="table01 left"><tbody>
+                            <table class="table01 left"><tbody>
                                 <tr>
                                     <td>
                                         <table id="ChangeAdvisors_advisorSelectTable">
@@ -2447,205 +2763,6 @@
     // MODULE: MoveBuildings
     //-----------------------------------------------------------------------------
 
-    //-----------------------------------------------------------------------------
-    // MODULE: UpdateChecker
-
-    IkaTweaks.setModule('UpdateChecker', function(modData, modDataSave){
-        if(typeof modData.lastCheck     == 'undefined') modData.lastCheck           = 0;
-        if(typeof modData.autoCheck     == 'undefined') modData.autoCheck           = false;
-
-        TPL.set('UpdateChecker_window', `
-            <div id="mainview">
-                <div class='buildingDescription'><h1>{str_UpdateChecker_name}</h1></div>
-                <div>
-                    <div class="contentBox01h" style="z-index: 101;">
-                        <div class="header" style="height:0px;"></div>
-                        <div class="content">
-                            <table id="UpdateChecker_settingTable" class="table01 left"><tbody>
-                                {settingsTR}
-                                <tr>
-                                    <th colspan="2">
-                                        <div class="centerButton">
-                                            <input id="js_UpdateChecker_saveSettingsButton" type="button" class="button" value="{str_save}" />
-                                        </div>
-                                    </th>
-                                </tr>
-                            </tbody></table>
-                            <table class="table01" id="UpdateChecker_table">
-                                <tr>
-                                    <th class="left" style="width:150px;">
-                                        <input id="IkaTweaksUpdateChecker_forceButton" style="width:150px;" type="button" class="button" value="{str_UpdateChecker_forceNow}" />
-                                    </th>
-                                    <th class="left">
-                                        {str_UpdateChecker_lastResult}: {lastResult}
-                                    </th>
-                                </tr>
-                                <tr>
-                                    <th class="left" colspan="2">
-                                        {str_UpdateChecker_HowDoesThisWork}
-                                    </th>
-                                </tr>
-                            </table>
-                        </div>
-                        <div class="footer"></div>
-                    </div>
-                    <div class="contentBox01h" style="z-index: 101;display:none;" id="UpdateChecker_linksBox">
-                        <h3 class="header">{str_UpdateChecker_linksHeader}</h3>
-                        <div class="content">
-                            <table class="table01">
-                                <tr>
-                                    <th class="center">
-                                        <div class="centerButton">
-                                            <a id="js_IkaTweaks_openGreasyForkButton" class="button">{str_ToGreasyForkText}</a>
-                                            <a id="js_IkaTweaks_openOpenUserJSButton" class="button">{str_ToOpenUserJSText}</a>
-                                            <a id="js_IkaTweaks_openGitHubRepoButton" class="button">{str_ToGitHubRepoText}</a>
-                                        </div>
-                                    </th>
-                                </tr>
-                            </table>
-                        </div>
-                        <div class="footer"></div>
-                    </div>
-                </div>
-            </div>
-        `);
-        TPL.set('UpdateChecker_settingTR', `
-            <tr>
-                <td width="50"><input id="UpdateChecker_settingCheckbox{id}" type="checkbox" class="checkbox" {checked}></td>
-                <td>{text}</td>
-            </tr>
-        `);
-
-        var showWindow, showWindowAndList=false;
-        var nowMajor, nowMinor;
-        var newMajor, newMinor, lastCheckResult = '-';
-        (function(v){
-            nowMajor = parseInt(v[0]);
-            nowMinor = parseInt(v[1]);
-        })(GM_info.script.version.match(/\d+/g));
-
-        function checkImage(onSuccess, onError) {
-            var image = new Image();
-            image.onload = function(){
-                newMajor    = image.width-1;
-                newMinor    = image.height-1;
-                var newAvailable = (newMajor>nowMajor)||(newMajor==nowMajor&&newMinor>nowMinor);
-                newAvailable = newAvailable ? newMajor+'.'+newMinor : false;
-                if(newAvailable) {
-                    lastCheckResult = '{str_UpdateChecker_newVersionAvailable}: v'+newAvailable;
-                } else {
-                    lastCheckResult = '{str_UpdateChecker_versionUpToDate}';
-                }
-                onSuccess(newAvailable);
-                IkaTweaks.success();
-            };
-            image.onerror = onError;
-            image.src = 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/versions/versionImage.gif';
-            modData.lastCheck = timestamp();
-            modDataSave();
-        }
-
-        // automatic daily check
-        function runAutoCheck() {
-            if (modData.autoCheck) {
-                if (modData.lastCheck < timestamp()-86400) {
-                    checkImage(function(newAvailable) {
-                        if (newAvailable) {
-                            alert('IkaTweaks: ' + LANG('str_UpdateChecker_newVersionAvailable') + ': v'+newAvailable);
-                        }
-                    });
-                }
-            }
-        }
-        runAutoCheck();
-
-        function listVersions(cb) {
-            var table = $('#UpdateChecker_table');
-            var curMajor = nowMajor;
-            var curMinor = nowMinor+1;
-            function loop() {
-                if(curMajor>newMajor)
-                {
-                    $('#UpdateChecker_table tr').not(':even').addClass('alt');
-                    $('#UpdateChecker_linksBox').show();
-                    ikariam.controller.adjustSizes();
-                    return cb();
-                }
-                var image = new Image();
-                image.onload = function(){
-                    table.append($('<tr></tr>').append($('<td colspan="2" class="left"></td>').append(image)));
-                    curMinor++;
-                    loop();
-                };
-                image.onerror = function(){
-                    curMajor++;
-                    curMinor=0;
-                    loop();
-                };
-                //image.src = 'https://github.com/YveOne/Userscript-IkaTweaks/blob/master/versions/version'+curMajor+'.'+curMinor+'.png?raw=true';
-                image.src = 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/versions/version'+curMajor+'.'+curMinor+'.png';
-            }
-            loop();
-        }
-
-        showWindow = function(){
-            var checkboxes = {
-                autoCheck          : modData.autoCheck,
-            };
-            IkaTweaks.changeHTML('UpdateChecker', TPL.get('UpdateChecker_window', {
-                lastResult: lastCheckResult,
-                settingsTR: TPL.getEach(checkboxes, function(checked, k){
-                    return ['UpdateChecker_settingTR', {
-                        id      : k,
-                        text    : '{str_UpdateChecker_'+k+'}',
-                        checked : (checked) ? 'checked="checked"' : '',
-                    }];
-                }),
-            }), function(){
-                $('#UpdateChecker_settingTable tr').not(':even').addClass('alt');
-                $('#js_IkaTweaks_openGreasyForkButton').attr({
-                    'href': _LINKS_.GreasyFork,
-                    'target': '_blank',
-                });
-                $('#js_IkaTweaks_openOpenUserJSButton').attr({
-                    'href': _LINKS_.OpenUserJS,
-                    'target': '_blank',
-                });
-                $('#js_IkaTweaks_openGitHubRepoButton').attr({
-                    'href': _LINKS_.GitHubRepo,
-                    'target': '_blank',
-                });
-                $('#IkaTweaksUpdateChecker_forceButton').click(function(){
-                    $('#IkaTweaksUpdateChecker_forceButton').attr('disabled', 'disabled');
-                    checkImage(function(newAvailable){
-                        if(newAvailable) showWindowAndList = true;
-                        showWindow();
-                    },function(){
-                        IkaTweaks.warning(LANG('str_UpdateChecker_checkFailed'));
-                    });
-                });
-                $('#js_UpdateChecker_saveSettingsButton').click(function(){
-                    forEach(checkboxes, (_, k) => {
-                        modData[k] = isChecked('#UpdateChecker_settingCheckbox'+k);
-                    });
-                    modDataSave();
-                    runAutoCheck();
-                    IkaTweaks.success();
-                });
-                if (showWindowAndList) {
-                    showWindowAndList = false;
-                    listVersions(function(){});
-                }
-            });
-        };
-
-        IkaTweaks.addSidebarButton('{str_UpdateChecker_name}', showWindow);
-
-    });
-
-    // MODULE: UpdateChecker
-    //-----------------------------------------------------------------------------
-
     LANG.alias('us', 'en');
     LANG('en', 'English', {
 
@@ -2653,6 +2770,8 @@
         'str_IkaTweaks_menu'        : 'IkaTweaks Menu',
         'str_IkaTweaks_tabModules'  : 'Modules',
         'str_IkaTweaks_tabAbout'    : 'About & Credits',
+        'str_IkaTweaks_version'     : 'Version',
+        'str_IkaTweaks_changelog'   : 'Changelog',
 
         'str_modules'           : 'Modules',
         'str_enabled'           : 'Enabled',
@@ -2679,6 +2798,14 @@
         'str_IkaTweaks_aboutText2'  : 'Questions, ideas, bugs or complaints? Email me at <span id="myEmail"></span> or visit me at: ',
         'str_IkaTweaks_aboutCredits': 'The used OnePiece images can be found on: <a id="creditUrl1"></a>',
 
+        'str_versionForceCheck'         : 'Check now',
+        'str_versionLastCheckResult'    : 'Last result',
+        'str_versionNewAvailable'       : 'New version available',
+        'str_versionUpToDate'           : 'Version is up to date',
+        'str_versionGetNewestHere'      : 'Get the newest versions here',
+        'str_versionCheckFailed'        : 'Checking failed',
+        'str_versionAutoCheck'          : 'Activate automatic checks',
+
         // -- GeneralTweaks
         'str_GeneralTweaks_name'                : 'General tweaks',
         'str_GeneralTweaks_info'                : 'Change CSS rules or remove objects and advertising',
@@ -2689,10 +2816,9 @@
         'str_GeneralTweaks_fixWindowTopPadding'             : 'Fix window top padding (looks nicer)',
         'str_GeneralTweaks_fixScrollbars'                   : 'Fix scrollbars',
         'str_GeneralTweaks_fixHoverEffectSwitching'         : 'Fix hover effects switching while mouseover on page load',
-        'str_GeneralTweaks_fixHoverToBackground'            : 'Move mouseover effect into background (fixes display bugs)',
         // -- GeneralTweaks - antiAds
         'str_GeneralTweaks_antiAds'                     : 'Anti Advertising',
-        'str_GeneralTweaks_adsHideSpeedUpButton'            : 'Remove speed-up buttons',
+        'str_GeneralTweaks_adsHideSpeedUpButtons'           : 'Remove speed-up buttons',
         'str_GeneralTweaks_adsHideWindowAds'                : 'Remove window ads',
         'str_GeneralTweaks_adsHideHappyHour'                : 'Remove happy hour timer',
         'str_GeneralTweaks_adsHideOfferBoxes'               : 'Remove premium offer boxes',
@@ -2701,6 +2827,7 @@
         'str_GeneralTweaks_adsHideArchiveButtons'           : 'Remove archive buttons in messages window',
         'str_GeneralTweaks_adsHideMilitaryDummies'          : 'Remove military dummy boxes',
         'str_GeneralTweaks_adsHideAdvisorButtons'           : 'Remove advisor premium buttons',
+        'str_GeneralTweaks_adsHideToolbarMMOAds'            : 'Remove toolbar MMO ads',
         // -- GeneralTweaks - animations
         'str_GeneralTweaks_animations'                  : 'Animations',
         'str_GeneralTweaks_animHideWalkers'                 : 'Hide all walkers and birds',
@@ -2718,18 +2845,27 @@
         'str_GeneralTweaks_cityHideFlyingShop'              : 'Hide flying premium shop',
         'str_GeneralTweaks_cityHideAmbrosiaFountain'        : 'Hide ambrosia fountain',
         // -- GeneralTweaks - ressources
-        'str_GeneralTweaks_ressources'                  : 'Ressources',
-        'str_GeneralTweaks_ressShowMissing'                 : 'Show missing ressources',
-        'str_GeneralTweaks_ressShowRemaining'               : 'Show remainingr ressources',
+        'str_GeneralTweaks_resources'                   : 'Cost resources',
+        'str_GeneralTweaks_resShowMissing'                  : 'Show missing resources',
+        'str_GeneralTweaks_resShowRemaining'                : 'Show remaining resources',
         // -- GeneralTweaks - interactive
         'str_GeneralTweaks_interactive'                 : 'Interactive',
         'str_GeneralTweaks_actShowMouseoverPlaques'         : 'Show building name on plaque on mouse over',
         'str_GeneralTweaks_actPreventPlaqueScaling'         : 'Show plaques always at full size',
         'str_GeneralTweaks_actHideMouseoverTitles'          : 'Hide default titles on mouse over',
+        'str_GeneralTweaks_cityHoverToBackground'           : 'Move mouseover effect into background in cities (fixes display bugs)',
+        'str_GeneralTweaks_islandHoverToBackground'         : 'Move mouseover effect into background on islands',
+        // -- GeneralTweaks - fleets
+        'str_GeneralTweaks_fleets'                      : 'Fleet movements',
+        'str_GeneralTweaks_fleetHideSpeedColumn'            : 'Hide speed column',
+        'str_GeneralTweaks_fleetHidePremiumFleetInfo'       : 'Hide premium fleet info',
+        'str_GeneralTweaks_fleetShowCapacities'             : 'Show Capacities',
+
+
 
         // -- CityListing
-        'str_CityListing_name'                  : 'City Listing',
-        'str_CityListing_info'                  : 'Extends your city dropdown menu',
+        'str_CityListing_name'                  : 'Enhanced City Listing',
+        'str_CityListing_info'                  : 'Change city order, show tradegoods or hide coords',
         'str_CityListing_hideCoords'            : 'Hide Coords',
         'str_CityListing_showTradegoods'        : 'Show Tradegoods',
         'str_CityListing_highlightSelected'     : 'Highlight selected city',
@@ -2737,9 +2873,8 @@
         'str_CityListing_sortEverywhere'        : 'Use custom sorting everywhere (palace, museum, ...)',
 
         // -- ChangeAdvisors
-        'str_ChangeAdvisors_name'                    : 'Change Advisors',
-        'str_ChangeAdvisors_info'                    : 'Change appearance of your advisors',
-        'str_ChangeAdvisors_replaceAdvisors'         : 'Replace advisors',
+        'str_ChangeAdvisors_name'                    : 'Individual advisors',
+        'str_ChangeAdvisors_info'                    : 'Change the appearance of your advisors separately',
         'str_ChangeAdvisors_cities'                  : 'Cities',
         'str_ChangeAdvisors_military'                : 'Military',
         'str_ChangeAdvisors_research'                : 'Research',
@@ -2781,18 +2916,6 @@
         'str_MoveBuildings_confirmSaveChanged'  : 'Save changed positions?',
         'str_MoveBuildings_restrictedPosition'  : 'That building cannot be placed there',
 
-        // -- Updatechecker
-        'str_UpdateChecker_name'                    : 'UpdateChecker',
-        'str_UpdateChecker_info'                    : 'Check for new version of IkaTweaks',
-        'str_UpdateChecker_forceNow'                : 'Check now',
-        'str_UpdateChecker_lastResult'              : 'Last result',
-        'str_UpdateChecker_newVersionAvailable'     : 'New version available',
-        'str_UpdateChecker_versionUpToDate'         : 'Version is up to date',
-        'str_UpdateChecker_HowDoesThisWork'         : 'How does this work: For your own safety IkaTweaks does NOT load any extern scripts but a tiny image from GitHub. With its weight and height it will be checked if a new version is available or not ;)',
-        'str_UpdateChecker_linksHeader'             : 'Here you will get always the newest version:',
-        'str_UpdateChecker_checkFailed'             : 'Checking failed',
-        'str_UpdateChecker_autoCheck'               : 'Activate automatic checks',
-
     });
 
     LANG('de', 'Deutsch', {
@@ -2801,6 +2924,8 @@
         'str_IkaTweaks_menu'        : 'IkaTweaks Menü',
         'str_IkaTweaks_tabModules'  : 'Module',
         'str_IkaTweaks_tabAbout'    : 'Info & Credits',
+        'str_IkaTweaks_version'     : 'Version',
+        'str_IkaTweaks_changelog'   : 'Changelog',
 
         'str_modules'           : 'Module',
         'str_enabled'           : 'Aktiviert',
@@ -2826,6 +2951,14 @@
         'str_IkaTweaks_aboutText2'  : 'Fragen, Ideen, Fehler gefunden oder eine Beschwerde? Einfach eine Email an <span id="myEmail"></span> oder besuche mich auf: ',
         'str_IkaTweaks_aboutCredits': 'Die hier benutzten OnePiece Bilder sind von: <a id="creditUrl1"></a>',
 
+        'str_versionForceCheck'             : 'Jetzt überprüfen',
+        'str_versionLastCheckResult'        : 'Letztes Ergebnis',
+        'str_versionNewAvailable'           : 'Neue Version verfügbar',
+        'str_versionUpToDate'               : 'Deine Version ist aktuell',
+        'str_versionGetNewestHere'          : 'Die neuste Version gibt es immer hier',
+        'str_versionCheckFailed'            : 'Konnte Version nicht überprüfen',
+        'str_versionAutoCheck'              : 'Überprüfe Version automatisch',
+
         // -- GeneralTweaks
         'str_GeneralTweaks_name'                : 'Allgemeine Optimierungen',
         'str_GeneralTweaks_info'                : 'Ändere CSS-Regeln oder entferne Objekte und Werbung',
@@ -2836,10 +2969,9 @@
         'str_GeneralTweaks_fixWindowTopPadding'             : 'Fix oberen Abstand vom Fenster',
         'str_GeneralTweaks_fixScrollbars'                   : 'Fix Scrollbalken',
         'str_GeneralTweaks_fixHoverEffectSwitching'         : 'Fix Hover-Effekte-Wechsel',
-        'str_GeneralTweaks_fixHoverToBackground'            : 'Setze MouseOver-Effekt in den Hintergrund (Behebt Anzeigefehler von Animationen)',
         // -- GeneralTweaks - antiAds
         'str_GeneralTweaks_antiAds'                     : 'Anti-Werbung',
-        'str_GeneralTweaks_adsHideSpeedUpButton'            : 'Entferne Speed-Up-Buttons',
+        'str_GeneralTweaks_adsHideSpeedUpButtons'           : 'Entferne Speed-Up-Buttons',
         'str_GeneralTweaks_adsHideWindowAds'                : 'Entferne Werbung',
         'str_GeneralTweaks_adsHideHappyHour'                : 'Entferne Happy-Hour-Timer',
         'str_GeneralTweaks_adsHideOfferBoxes'               : 'Entferne Premium-Angebote',
@@ -2848,6 +2980,7 @@
         'str_GeneralTweaks_adsHideArchiveButtons'           : 'Entferne Archivieren-Buttons',
         'str_GeneralTweaks_adsHideMilitaryDummies'          : 'Entferne militärische Attrappen',
         'str_GeneralTweaks_adsHideAdvisorButtons'           : 'Entferne Berater-Premium-Buttons',
+        'str_GeneralTweaks_adsHideToolbarMMOAds'            : 'Entferne MMO-Ads in der Toolbar',
         // -- GeneralTweaks - animations
         'str_GeneralTweaks_animations'                  : 'Animationen',
         'str_GeneralTweaks_animHideWalkers'                 : 'Verstecke alle Spaziergänger und Vögel',
@@ -2865,18 +2998,28 @@
         'str_GeneralTweaks_cityHideFlyingShop'              : 'Verstecke fliegenden Shop',
         'str_GeneralTweaks_cityHideAmbrosiaFountain'        : 'Verstecke Ambrosia-Brunnen',
         // -- GeneralTweaks - ressources
-        'str_GeneralTweaks_ressources'                  : 'Resourcen',
-        'str_GeneralTweaks_ressShowMissing'                 : 'Zeige fehlende Resourcen',
-        'str_GeneralTweaks_ressShowRemaining'               : 'Zeige verbleibende Resourcen',
+        'str_GeneralTweaks_resources'                   : 'Ressourcen-Kosten',
+        'str_GeneralTweaks_resShowMissing'                  : 'Zeige fehlende Ressourcen',
+        'str_GeneralTweaks_resShowRemaining'                : 'Zeige verbleibende Ressourcen',
         // -- GeneralTweaks - interactive
         'str_GeneralTweaks_interactive'                 : 'Interaktiv',
         'str_GeneralTweaks_actShowMouseoverPlaques'         : 'Zeige Gebäudenamen auf Plaketten bei Mouse-Over',
         'str_GeneralTweaks_actPreventPlaqueScaling'         : 'Zeige Plaketten immer mit voller Größe',
         'str_GeneralTweaks_actHideMouseoverTitles'          : 'Verstecke Standard-Titel bei MouseOver',
+        'str_GeneralTweaks_cityHoverToBackground'           : 'Setze MouseOver-Effekt in Städten in den Hintergrund (Behebt einige Anzeigefehler)',
+        'str_GeneralTweaks_islandHoverToBackground'         : 'Setze MouseOver-Effekt auf Inseln in den Hintergrund',
+        // -- GeneralTweaks - fleets
+        'str_GeneralTweaks_fleets'                      : 'Truppenbewegungen',
+        'str_GeneralTweaks_fleetHideSpeedColumn'            : 'Verstecke Spalte für Geschwindigkeit',
+        'str_GeneralTweaks_fleetHidePremiumFleetInfo'       : 'Verstecke Premium-Flotten-Info',
+        'str_GeneralTweaks_fleetShowCapacities'             : 'Zeige Kapazitäten',
+
+
+
 
         // -- CityListing
-        'str_CityListing_name'                  : 'Städteliste',
-        'str_CityListing_info'                  : 'Erweitert das Dropdown-Menü für die Städte',
+        'str_CityListing_name'                  : 'Verbesserte Städteliste',
+        'str_CityListing_info'                  : 'Ändere die Reihenfolge der Städte oder lass Dir Luxusgüter anzeigen',
         'str_CityListing_hideCoords'            : 'Keine Koordinaten',
         'str_CityListing_showTradegoods'        : 'Zeige Luxusgüter',
         'str_CityListing_highlightSelected'     : 'Ausgewählte Stadt hervorheben',
@@ -2884,9 +3027,8 @@
         'str_CityListing_sortEverywhere'        : 'Eigene Reihenfolge überall benutzen (Palast, Museum, ...)',
 
         // -- ChangeAdvisors
-        'str_ChangeAdvisors_name'                    : 'Berater ändern',
-        'str_ChangeAdvisors_info'                    : 'Ändert das Aussehen der Berater',
-        'str_ChangeAdvisors_replaceAdvisors'         : 'Berater ersetzen',
+        'str_ChangeAdvisors_name'                    : 'Individuelle Berater',
+        'str_ChangeAdvisors_info'                    : 'Ändere das Aussehen einzelner Berater',
         'str_ChangeAdvisors_cities'                  : 'Städte',
         'str_ChangeAdvisors_military'                : 'Militär',
         'str_ChangeAdvisors_research'                : 'Forschung',
@@ -2922,23 +3064,11 @@
 
         // -- MoveBuildings
         'str_MoveBuildings_name'                : 'Gebäude versetzen',
-        'str_MoveBuildings_info'                : 'Ändere die Positionen deiner Gebäude',
+        'str_MoveBuildings_info'                : 'Ändere die Positionen Deiner Gebäude',
         'str_MoveBuildings_SavePositions'       : 'Positionen speichern',
         'str_MoveBuildings_DragDropHint'        : '(Ändere die Positionen der Gebäude per Drag&Drop)',
         'str_MoveBuildings_confirmSaveChanged'  : 'Geänderte Positionen speichern?',
         'str_MoveBuildings_restrictedPosition'  : 'Dieses Gebäude kann dort nicht platziert werden',
-
-        // -- Updatechecker
-        'str_UpdateChecker_name'                    : 'UpdateChecker',
-        'str_UpdateChecker_info'                    : 'Sucht nach neuen IkaTweaks-Versionen',
-        'str_UpdateChecker_forceNow'                : 'Überprüfen',
-        'str_UpdateChecker_lastResult'              : 'Letztes Ergebnis',
-        'str_UpdateChecker_newVersionAvailable'     : 'Neue Version verfügbar',
-        'str_UpdateChecker_versionUpToDate'         : 'Version ist aktuell',
-        'str_UpdateChecker_HowDoesThisWork'         : 'Wie dies funktioniert: IkaTweaks lädt zu Deiner eigenen Sicherheit kein externes Script, sondern ein kleines Bild von GitHub, mit dessen Breite und Höhe überprüft wird ob eine neue Version verfügbar ist ;)',
-        'str_UpdateChecker_linksHeader'             : 'Die neuste Version gibt es immer hier:',
-        'str_UpdateChecker_checkFailed'             : 'Konnte Version nicht überprüfen',
-        'str_UpdateChecker_autoCheck'               : 'Überprüfe Version automatisch',
 
     });
 
