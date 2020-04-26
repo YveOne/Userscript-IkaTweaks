@@ -4,7 +4,7 @@
 //
 // @name            IkaTweaks
 // @description     Improvements for Ikariam
-// @version         2.3
+// @version         2.4
 // @author          Yvonne P.
 // @license         MIT; https://opensource.org/licenses/MIT
 // @icon            http://de.ikariam.gameforge.com/favicon.ico
@@ -46,12 +46,16 @@
     function forEach(obj, func)                 {for(var k in obj){if(obj.hasOwnProperty(k)){func(obj[k],k,obj);}}}
     function jsonDecode(str, dflt)              {var obj=null;try{obj=JSON.parse(str);}catch(e){}return((obj!==null)?obj:dflt);}
     function injectCSS(cssText)                 {var el=document.createElement('style');el.setAttribute('type','text/css');if(el.styleSheet){el.styleSheet.cssText=cssText;}else{el.appendChild(document.createTextNode(cssText));}document.querySelector('head').appendChild(el);return el;}
-    function hookFunction(obj, fn, cb)          {(function(of){obj[fn]=function(){var ret=of.apply(this,arguments);cb.apply(this,[ret,of,arguments]);return ret;};}(obj[fn]));}
-    function waitFor(cond, func, tOut, sleep)   {sleep=sleep||33;var tEnd=tOut?(new Date()).getTime()+tOut:null;var ret,w4=function(){ret=cond();if(ret){return func(ret);}if(tEnd && tEnd<(new Date()).getTime()){return func(false);}setTimeout(w4,sleep);};w4();}
+    function hookFunction(obj, fn, cb)          {(function(of){obj[fn]=function(){var ret=of.apply(this,arguments);cb.apply(this,arguments);return ret;};}(obj[fn]));}
     function removeElement(el)                  {try{return el.parentNode.removeChild(el);}catch(e){}return null;}
     function forceInt(str)                      {return parseInt(str.replace(/\D/g, ''));}
-    function randomInclusive(min, max)          {min=Math.ceil(min);max=Math.floor(max);return Math.floor(Math.random()*(max-min+1))+min; } 
-    function timestamp()                        {return Math.round(new Date().getTime()/1000)}
+    function random(min, max)                   {min=Math.ceil(min);max=Math.floor(max);return Math.floor(Math.random()*(max-min+1))+min; } 
+    function timestamp()                        {return Math.round(Date.now()/1000)}
+
+    // v2 (c) Yvonne P.
+    function waitFor(cond)                      {return new Promise((ok,ko)=>{var tEnd=Date.now()+waitFor.timeout,ret,w4=function(){try{ret=cond();}catch(e){ret=false;}if(ret){return ok(ret);}else{if(tEnd<Date.now()){return ko();}}setTimeout(w4,waitFor.sleep);};w4();});}
+    waitFor.timeout = 2000;
+    waitFor.sleep = 33;
 
     // v3 (c) Yvonne P.
     function LocalStorageHandler(tag) {
@@ -72,8 +76,8 @@
         }
         function setItem(k) {
             if (data) {
-                data.storedKeys[tag] = (new Date()).getTime();
-                data.storedKeys[k] = (new Date()).getTime();
+                data.storedKeys[tag] = Date.now();
+                data.storedKeys[k] = Date.now();
             }
             localStorage.setItem(tag, JSON.stringify(data));
         }
@@ -118,93 +122,36 @@
     }
 
     // v2 (c) Yvonne P.
-    function EasyTemplates() {
-        var that = this;
-        var tplList = {};
-        var regExpParseHtml = new RegExp('\\{[a-zA-Z0-9_]+\\}', 'gi');
-        this.set = function(id, html) {
-            tplList[id] = html;
-        };
-        this.get = function(id, data) {
-            id = id || '';
-            return (tplList[id]) ? that.parse(tplList[id], data) : 'Template "'+id+'" not found';
-        };
-        this.getEach = function(obj, func) {
-            var ret = [];
-            var keys = Object.keys(obj);
-            while(keys.length) {
-                var k = keys.shift();
-                var a = func(obj[k], k, obj);
-                if(a) ret.push(that.get.apply(null, a));
-            }
-            return ret.join('');
-        };
-        this.parse = function(html, data) {
-            html = html || '';
-            data = data || {};
-            return html.replace(regExpParseHtml, function(x){
-                var y = data[x.substr(1, x.length-2)];
-                return (y!==null && typeof y!='undefined') ? y : x;
-            });
-        };
+    function EasyTemplates(){
+        var that=this,tplList={};
+        var reParse=new RegExp('\\{[a-zA-Z0-9_]+\\}','gi');
+        this.set=function(id,html){tplList[id]=html;};
+        this.get=function(id,data){id=id||'';return (tplList[id])?that.parse(tplList[id],data):'Template "'+id+'" not found';};
+        this.getEach=function(obj,func){var ret=[],keys=Object.keys(obj);while(keys.length){var k=keys.shift(),a=func(obj[k],k,obj);if(a)ret.push(that.get.apply(null,a));}return ret.join('');};
+        this.parse=function(html,data){html=html||'';data=data||{};return html.replace(reParse,function(x){var y=data[x.substr(1,x.length-2)];return (y!==null&&y!==undefined)?y:x;});};
     }
 
-    // v3 (c) Yvonne P.
-    function LanguageHandler(useLocal, baseLocal)
-    {
-        var str = {};
-        var ctr = {};
-        var als = {};
-        function get(k) {
-            return (typeof str[k]=='string') ? str[k] : k;
-        }
-        function set(c, l, n) {
-            if (c instanceof Array) {
-                while(c.length) {
-                    set(c.shift(), n);
-                }
-                return;
-            }
-            if (als[c] == useLocal) {
-                c = als[c];
-            }
-            ctr[c] = l;
-            if (c == baseLocal) {
-                forEach(n, (v, k) => {
-                    if (v !== null) {
-                        str[k] = (typeof str[k]=='string') ? str[k] : v.toString();
-                    }
-                });
-            } else {
-                if (c == useLocal) {
-                    forEach(n, (v, k) => {
-                        if (v !== null) {
-                            str[k] = v.toString();
-                        }
-                    });
-                }
-            }
-        }
-        var ret = function() {
-            if(arguments.length==1) return get.apply(null, arguments);
-            if(arguments.length==3) return set.apply(null, arguments);
-            return str;
-        };
-        ret.codes = function() {
-            return JSON.parse(JSON.stringify(ctr));
-        };
-        ret.alias = function(a, b) {
-            als[a] = b;
-        };
-        ret.local = function() {
-            return useLocal;
-        };
+    // v4 (c) Yvonne P.
+    function LanguageHandler(useLocal,baseLocal){
+        var str={},ctr={},als={};
+        function get(k){return (typeof str[k]==='string')?str[k]:k;}
+        function set(c,l,n){if(c instanceof Array){while(c.length){set(c.shift(),n);}return;}if(als[c]===useLocal){c=als[c];}ctr[c]=l;if(c===baseLocal){Object.keys(n).forEach((k)=>{var v=n[k];if(v!==null){str[k]=(typeof str[k]=='string')?str[k]:v.toString();}});}else{if(c===useLocal){Object.keys(n).forEach((k)=>{var v=n[k];if(v!==null){str[k]=v.toString();}});}}}
+        var ret=function(){if(arguments.length===1)return get.apply(null,arguments);if(arguments.length===3)return set.apply(null,arguments);return str;};
+        ret.codes=function(){return JSON.parse(JSON.stringify(ctr));};
+        ret.alias=function(a,b){als[a]=b;};
+        ret.local=function(){return useLocal;};
         return ret;
     }
 
     const TPL  = new EasyTemplates();
     const LS   = new LocalStorageHandler('IkaTweaks_');
     const LANG = LanguageHandler(LS.load('LANG', location.hostname.match(/s\d+\-(\w+)\.ikariam\.gameforge\.com/i)[1]), 'en');
+
+    (function(){
+        var _injectCSS=injectCSS,queue=[],headAvailable=false;
+        injectCSS=function(css,cb){if(headAvailable){(cb||function(){})(_injectCSS(css));}else{queue.push([css,cb]);}};
+        waitFor(()=>{return document.querySelector('head');}).then(()=>{headAvailable=true;while(queue.length){injectCSS.apply(null,queue.shift());}}).catch(()=>{});
+    }());
 
     // SYSTEM FUNCTIONS
     //--------------------------------------------------------------------------------------------------
@@ -260,58 +207,18 @@
     //--------------------------------------------------------------------------------------------------
 
     //--------------------------------------------------------------------------------------------------
-    // hooks
-
-    (function(){
-        const _injectCSS = injectCSS;
-        const queue = [];
-        var headAvailable = false;
-        injectCSS = function(css, cb) {
-            if (headAvailable) {
-                (cb||function(){})(_injectCSS(css));
-            } else {
-                queue.push([css, cb]);
-            }
-        };
-        waitFor(function(){
-            return document.querySelector('head');
-        }, function(){
-            headAvailable = true;
-            while(queue.length) {
-                injectCSS.apply(null, queue.shift());
-            }
-        }, 2000, 33);
-    }());
+    // CORE
 
     waitFor.ajaxResponder = (function(waitFor){
-        var resp = false;
-        var queue = [];
-        waitFor(function(){
-            try{return ikariam.controller;}catch(e){}
-            return false;
-        }, function(ctrl){
-            if(!ctrl || ctrl===null) return;
-            if(ctrl.ajaxResponder===null){ctrl.ajaxResponder=ikariam.getClass(ajax.Responder);}
-            resp = ctrl.ajaxResponder;
-            while(queue.length) {
-                queue.shift()(resp);
-            }
-        }, 2000, 100);
-        return function(cb) {
-            if (typeof cb !== 'function') return;
-            if (resp) {
-                cb(resp);
-            } else {
-                queue.push(cb);
-            }
+        var resp = false, queue = [];
+        waitFor(() => { return ikariam.controller; }).then((n) => {
+            if(n.ajaxResponder===null){n.ajaxResponder=ikariam.getClass(ajax.Responder);}
+            resp = n.ajaxResponder; while(queue.length) queue.shift()[0](resp);
+        }).catch(() => { while(queue.length) queue.shift()[1](resp); });
+        return function() {
+            return new Promise((ok, ko) => { if (resp) { ok(resp); } else { queue.push([ok, ko]); } });
         };
     }(waitFor));
-
-    // hooks
-    //--------------------------------------------------------------------------------------------------
-
-    //--------------------------------------------------------------------------------------------------
-    // CORE
 
     const IkaTweaks = {};
     (function(IkaTweaks){
@@ -368,7 +275,7 @@
 
         IkaTweaks.success = function(t) {
             if (!t) {
-                t = LANG('str_success'+randomInclusive(0,4));
+                t = LANG('str_success'+random(0,4));
             }
             ikariam.controller.ajaxResponder.provideFeedback([{ location: 1, text: t, type: 10 }]);
         };
@@ -379,39 +286,40 @@
             ikariam.controller.ajaxResponder.provideFeedback([{ location: 1, text: t, type: 12 }]);
         };
 
-        IkaTweaks.changeHTML = function(id, html, cb) {
-            waitFor.ajaxResponder((ajaxResponder) => {
+        IkaTweaks.changeHTML = function(id, html) {
+            return new Promise((ok, ko) => {
+                waitFor.ajaxResponder().then((ajaxResponder) => {
+                    html = TPL.get('IkaTweaksFrame', {
+                        version : GM_info.script.version,
+                        mainview: html,
+                        buttons1: TPL.getEach(sidebarButtons, function(btn, i){
+                            return (!btn.useTop) ? null : ['IkaTweaksSidebar_button', {
+                                btnId: 'IkaTweaksSidebar_button'+i,
+                                btnText: btn.text
+                            }];
+                        }),
+                        buttons2: TPL.getEach(sidebarButtons, function(btn, i){
+                            return (btn.useTop) ? null : ['IkaTweaksSidebar_button', {
+                                btnId: 'IkaTweaksSidebar_button'+i,
+                                btnText: btn.text
+                            }];
+                        }),
+                    });
 
-                html = TPL.get('IkaTweaksFrame', {
-                    version : GM_info.script.version,
-                    mainview: html,
-                    buttons1: TPL.getEach(sidebarButtons, function(btn, i){
-                        return (!btn.useTop) ? null : ['IkaTweaksSidebar_button', {
-                            btnId: 'IkaTweaksSidebar_button'+i,
-                            btnText: btn.text
-                        }];
-                    }),
-                    buttons2: TPL.getEach(sidebarButtons, function(btn, i){
-                        return (btn.useTop) ? null : ['IkaTweaksSidebar_button', {
-                            btnId: 'IkaTweaksSidebar_button'+i,
-                            btnText: btn.text
-                        }];
-                    }),
-                });
+                    html = TPL.parse(html, LANG());
+                    ajaxResponder.changeHTML([id,html], true);
+                    setTimeout(ikariam.controller.adjustSizes, 1000);
 
-                html = TPL.parse(html, LANG());
-                ajaxResponder.changeHTML([id,html], true);
-                setTimeout(ikariam.controller.adjustSizes, 1000);
+                    var sidebarButtonsLength = sidebarButtons.length;
+                    for(var i=0; i<sidebarButtonsLength; i++) {
+                        $('#IkaTweaksSidebar_button'+i).click(sidebarButtons[i].func);
+                    }
 
-                var sidebarButtonsLength = sidebarButtons.length;
-                for(var i=0; i<sidebarButtonsLength; i++) {
-                    $('#IkaTweaksSidebar_button'+i).click(sidebarButtons[i].func);
-                }
-
-                $('table.table01 tr').not(':even').addClass('alt');
-                ikariam.controller.replaceCheckboxes();
-                ikariam.controller.replaceDropdownMenus();
-                if(typeof cb == 'function') cb();
+                    $('table.table01 tr').not(':even').addClass('alt');
+                    ikariam.controller.replaceCheckboxes();
+                    ikariam.controller.replaceDropdownMenus();
+                    ok();
+                }).catch(ko);
             });
         };
 
@@ -670,7 +578,7 @@
             function loop() {
                 var image = new Image();
                 image.onload = function(){
-                    table.append($('<tr></tr>').append($('<td colspan="2" class="left"></td>').append(image)));
+                    table.prepend($('<tr></tr>').append($('<td colspan="2" class="left"></td>').append(image)));
                     curMinor++;
                     loop();
                 };
@@ -679,7 +587,6 @@
                     ikariam.controller.adjustSizes();
                     if (cb) cb();
                 };
-                //image.src = 'https://github.com/YveOne/Userscript-IkaTweaks/blob/master/versions/version'+curMajor+'.'+curMinor+'.png?raw=true';
                 image.src = 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/versions/version'+curMajor+'.'+curMinor+'.png';
             }
             loop();
@@ -692,11 +599,11 @@
             function loop() {
                 var image = new Image();
                 image.onload = function(){
-                    table.append($('<tr></tr>').append($('<td colspan="2" class="left"></td>').append(image)));
+                    table.prepend($('<tr></tr>').append($('<td colspan="2" class="left"></td>').append(image)));
                     curMinor++;
                     loop();
                 };
-                //image.src = 'https://github.com/YveOne/Userscript-IkaTweaks/blob/master/versions/version'+curMajor+'.'+curMinor+'.png?raw=true';
+                image.onerror = cb;
                 image.src = 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/versions/version'+curMajor+'.'+curMinor+'.png';
             }
             loop();
@@ -720,7 +627,7 @@
         showSettingsWindow = function(){
             IkaTweaks.changeHTML('IkaTweaks', TPL.get('IkaTweaks_tabbedWindow', {
                 mainviewContent: TPL.get('IkaTweaks_modulesWindow', {
-                    modulesTR: TPL.getEach(definedModules, function(mod, modId){
+                    modulesTR: TPL.getEach(definedModules, (mod, modId) => {
                         return ['IkaTweaks_modulesTR', {
                             modId   : modId,
                             modName : mod.name,
@@ -729,7 +636,7 @@
                         }];
                     }),
                 }),
-            }), function(){
+            })).then(() => {
                 $('#js_tab_IkaTweaks_modulesWindow').click(showSettingsWindow);
                 $('#js_tab_IkaTweaks_aboutWindow').click(showAboutWindow);
                 $('#js_tab_IkaTweaks_versionWindow').click(showVersionWindow);
@@ -750,7 +657,7 @@
                     LS.save('tutorialDone', '1');
                     $('#js_IkaTweaks_tutorialArrow').fadeOut();
                 }
-            });
+            }).catch(() => {});
         };
 
         showAboutWindow = function(){
@@ -761,7 +668,7 @@
                 mainviewContent: TPL.get('IkaTweaks_aboutWindow', {
                     select  : LangSelect.tpl(),
                 }),
-            }), function(){
+            })).then(() => {
                 $('#js_tab_IkaTweaks_modulesWindow').click(showSettingsWindow);
                 $('#js_tab_IkaTweaks_aboutWindow').click(showAboutWindow);
                 $('#js_tab_IkaTweaks_versionWindow').click(showVersionWindow);
@@ -797,7 +704,7 @@
                     'target': '_blank',
                 }).html(_LINKS_.OnePiece);
 
-            });
+            }).catch(() => {});
         };
 
         showVersionWindow = function(){
@@ -807,7 +714,7 @@
             IkaTweaks.changeHTML('IkaTweaks', TPL.get('IkaTweaks_tabbedWindow', {
                 mainviewContent: TPL.get('IkaTweaks_versionWindow', {
                     lastResult: versionCheckResult,
-                    settingsTR: TPL.getEach(checkboxes, function(checked, k){
+                    settingsTR: TPL.getEach(checkboxes, (checked, k) => {
                         return ['IkaTweaks_settingTR', {
                             id      : k,
                             text    : '{str_'+k+'}',
@@ -815,7 +722,7 @@
                         }];
                     }),
                 }),
-            }), function(){
+            })).then(() => {
                 $('#js_tab_IkaTweaks_modulesWindow').click(showSettingsWindow);
                 $('#js_tab_IkaTweaks_aboutWindow').click(showAboutWindow);
                 $('#js_tab_IkaTweaks_versionWindow').click(showVersionWindow);
@@ -854,7 +761,7 @@
                 if (versionNew) {
                     versionShowNewList();
                 }
-            });
+            }).catch(() => {});
         };
 
         showChangelogWindow = function(){
@@ -864,30 +771,21 @@
             IkaTweaks.changeHTML('IkaTweaks', TPL.get('IkaTweaks_tabbedWindow', {
                 mainviewContent: TPL.get('IkaTweaks_changelogWindow', {
                 }),
-            }), function(){
+            })).then(() => {
                 $('#js_tab_IkaTweaks_modulesWindow').click(showSettingsWindow);
                 $('#js_tab_IkaTweaks_aboutWindow').click(showAboutWindow);
                 $('#js_tab_IkaTweaks_versionWindow').click(showVersionWindow);
                 $('#js_tab_IkaTweaks_changelogWindow').click(showChangelogWindow);
                 $('#js_tab_IkaTweaks_changelogWindow').addClass('selected');
-                changelogShowList();
-            });
+                changelogShowList(() => {
+                    ikariam.controller.adjustSizes();
+                });
+            }).catch(() => {});
         };
 
-
-
-
-
-
-
-
-
-
-
-        waitFor(function(){
-            return (typeof $ != 'undefined');
-        }, function(jQ){
-            if(!jQ) return;
+        waitFor(() => {
+            return ($ !== undefined);
+        }).then(() => {
             $('#GF_toolbar ul li.options').after($('<li></li>').append($('<a>',{
                 'id'   : 'IkaTweaksToolbarButton',
                 'click': function(){ showSettingsWindow();return false; },
@@ -923,8 +821,7 @@
                 LS.drop('reopenSettingWindow');
                 showSettingsWindow();
             }
-
-        }, 3000, 333);
+        }).catch(() => {});
 
         IkaTweaks.addSidebarButton('{str_IkaTweaks_menu}', showSettingsWindow, true);
 
@@ -944,6 +841,9 @@
         if(typeof modData.fixWindowTopPadding       == 'undefined') modData.fixWindowTopPadding         = true;
         if(typeof modData.fixScrollbars             == 'undefined') modData.fixScrollbars               = true;
         if(typeof modData.fixHoverEffectSwitching   == 'undefined') modData.fixHoverEffectSwitching     = true;
+        if(typeof modData.fixDarkSelectActiveColor  == 'undefined') modData.fixDarkSelectActiveColor    = true;
+        if(typeof modData.fixWindowTabSizes         == 'undefined') modData.fixWindowTabSizes           = true;
+
 
         // anti ads
         if(typeof modData.adsHideSpeedUpButtons     == 'undefined') modData.adsHideSpeedUpButtons       = modData.adsHideSpeedUpButton || false;
@@ -974,8 +874,9 @@
         if(typeof modData.cityHideAmbrosiaFountain      == 'undefined') modData.cityHideAmbrosiaFountain    = true;
 
         // ressources
-        if(typeof modData.resShowMissing                == 'undefined') modData.resShowMissing      = modData.ressShowMissing || true;
-        if(typeof modData.resShowRemaining              == 'undefined') modData.resShowRemaining    = modData.ressShowRemaining || false;
+        if(typeof modData.resShowMissing                == 'undefined') modData.resShowMissing              = modData.ressShowMissing || true;
+        if(typeof modData.resShowRemaining              == 'undefined') modData.resShowRemaining            = modData.ressShowRemaining || false;
+        if(typeof modData.warehouseShowRemainingSave    == 'undefined') modData.warehouseShowRemainingSave  = false;
 
         // interactive
         if(typeof modData.cityHoverToBackground         == 'undefined') modData.cityHoverToBackground       = modData.fixHoverToBackground || false;
@@ -1235,8 +1136,7 @@
             }
         }
 
-        function onViewChanged() {
-
+        function updateRessourcesCosts() {
             if (modData.ressShowMissing || modData.ressShowRemaining) {
                 var res = {
                     'wood':'resource',
@@ -1268,13 +1168,14 @@
                     });
                 });
             }
+        }
 
+        function updateFleetMovements() {
             if (document.getElementById('militaryAdvisor')) {
-                waitFor(function(){
-                    try { return ikariam.templateView.viewScripts.militaryAdvisor; }
-                    catch(e) { return false; }
-                }, function(v){
-                    if (!v) return;
+
+                waitFor(() => {
+                    return ikariam.templateView.viewScripts.militaryAdvisor;
+                }).then(() => {
 
                     if (modData.miliHidePremiumFleetInfo) {
                         $('table.military_event_table td.spyMilitary.magnify_icon').each(function(){
@@ -1325,56 +1226,53 @@
                         });
                     }
 
-                }, 2000);
+                }).catch(() => {});
             }
         }
 
+        function updateWarehouseInfos() {
+            if (document.getElementById('warehouse')) {
 
+                if (modData.warehouseShowRemainingSave) {
+                    var res = [ 'wood', 'wine', 'marble', 'glass', 'sulfur' ];
+                    res.forEach((res) => {
+                        var secure = forceInt($('#js_secure_'+res).text());
+                        var plunderable = forceInt($('#js_plunderable_'+res).text());
+                        var total = forceInt($('#js_total_'+res).text());
+                        var capacity = forceInt($('#js_capacity_'+res).text());
+                        if (!plunderable) {
+                            var restSecure = secure - total;
+                            $('#js_plunderable_'+res)[0].innerHTML = ikariam.model.shortenValue(restSecure, 6);
+                            $('#js_plunderable_'+res).addClass('green');
+                        }
+                    });
+                }
+            }
+        }
 
+        waitFor.ajaxResponder().then((ajaxResponder) => {
+            hookFunction(ajaxResponder, 'changeView', () => {
+                updateRessourcesCosts();
+                updateFleetMovements();
+            });
+            hookFunction(ajaxResponder, 'updateViewScriptData', updateFleetMovements);
+            hookFunction(ajaxResponder, 'updateTemplateData', updateWarehouseInfos);
+            updateRessourcesCosts();
+            updateFleetMovements();
+        }).catch(() => {});
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        waitFor.ajaxResponder((ajaxResponder) => {
-            hookFunction(ajaxResponder, 'changeView', onViewChanged);
-            onViewChanged();
-        });
-
-        waitFor(function(){
-            try{
-                jshintUnused = dataSetForView.relatedCityData;
-                jshintUnused = ikariam.backgroundView.screen.update;
-                return true;
-            }catch(e){}
-            return false;
-        }, function(v){
-            if(!v) return;
-            hookFunction(ikariam.backgroundView.screen, 'update', function() {
+        waitFor(() => {
+            return dataSetForView.relatedCityData && ikariam.backgroundView.screen.update;
+        }).then(() => {
+            hookFunction(ikariam.backgroundView.screen, 'update', () => {
                 actSetHoverHandlers();
                 actRescalePlaques();
             });
             hookFunction(ikariam.controller, 'scaleWorldMap', actRescalePlaques);
             actSetHoverHandlers();
             actRescalePlaques();
-        }, 2000, 33);
-
-
-
-
+            actRescalePlaques();
+        }).catch(() => {});
 
         var cssElement;
         function updateCSS() {
@@ -1383,17 +1281,17 @@
             //
             // bugFixes
             //
-            if (modData.fixResearchWindowList)          {
+            if (modData.fixResearchWindowList) {
                 css.push('ol.research_type { width: 220px !important; }');
             }
-            if (modData.fixCitySelectItems)          {
+            if (modData.fixCitySelectItems) {
                 css.push('.dropdownContainer.city_select li.last-child { background-position: left -142px !important; padding-bottom: 3px; }');
                 css.push('.dropdownContainer.city_select li.last-child:hover{ background-position: left -196px !important; }');
             }
-            if (modData.fixWindowTopPadding)          {
+            if (modData.fixWindowTopPadding) {
                 css.push('#container .mainContentBox .mainContent { padding-top: 20px !important; }');
             }
-            if (modData.fixScrollbars)          {
+            if (modData.fixScrollbars) {
                 /** fix scrollbar x position **/
                 css.push('#container .scroller { background-position-x: -1px !important; }');
                 /** fix scroll window margin top **/
@@ -1402,6 +1300,17 @@
                 css.push('#container .scroll_area { margin-right: 3px; }');
                 css.push('#container .scroll_area.scroll_disabled { margin-right: 0px; }');
             }
+            if (modData.fixDarkSelectActiveColor) {
+                css.push('.select_container.city_select .dropDownButton.active a { color: #faeac6; }');
+            }
+            if (modData.fixWindowTabSizes) {
+                css.push('#container .tabmenu .tab { border: 1px solid transparent; border-bottom: 0; }');
+                css.push('#container .tabmenu .selected, #container .tabmenu .tab:hover { padding: 1px 3px 0px 3px !important; }');
+            }
+
+
+
+
 
             //
             // antiAds
@@ -1579,6 +1488,8 @@
                 'fixWindowTopPadding',
                 'fixScrollbars',
                 'fixHoverEffectSwitching',
+                'fixDarkSelectActiveColor',
+                'fixWindowTabSizes',
             ]],
             ['antiAds', [
                 'adsHideSpeedUpButtons',
@@ -1617,6 +1528,7 @@
             ['resources', [
                 'resShowMissing',
                 'resShowRemaining',
+                'warehouseShowRemainingSave',
             ]],
             ['fleets', [
                 'fleetHideSpeedColumn',
@@ -1708,7 +1620,7 @@
                         })
                     }];
                 })
-            }), function(){
+            })).then(() => {
                 $('#js_GeneralTweaks_settingsButton').click(function(){
                     function forEachCheckBox(k) {
                         modData[k] = isChecked('#GeneralTweaks_settingCheckbox'+k);
@@ -1725,7 +1637,7 @@
                     actSetHoverHandlers();
                     IkaTweaks.success();
                 });
-            });
+            }).catch(() => {});
         });
 
     });
@@ -1742,7 +1654,6 @@
         if(typeof modData.highlightSelected == 'undefined') modData.highlightSelected   = true;
         if(typeof modData.sortList          == 'undefined') modData.sortList            = true;
         if(typeof modData.sortedList        == 'undefined') modData.sortedList          = [];
-        if(typeof modData.sortEverywhere    == 'undefined') modData.sortEverywhere      = false;
 
         // afterI = after what child ele append others?
         // chields = {cityId:listEle, cityId:listEle, ...}
@@ -1839,7 +1750,7 @@
         }
 
         function changeViewUpdate() {
-            if(!(modData.sortList && modData.sortEverywhere)) return;
+            if(!(modData.sortList)) return;
 
             var unsortedIds = [];
             forEach(ikariam.model.relatedCityData, (relatedCity, cityKey) => {
@@ -1886,23 +1797,19 @@
             }
         }
 
-        waitFor(function(){
-            try{
-                jshintUnused = ikariam.backgroundView.updateCityDropdownMenu;
-                jshintUnused = ikariam.model.relatedCityData;
-                return true;
-            }catch(e){}
-            return false;
-        }, function(ret){
-            if(!ret) return;
+        waitFor(() => {
+            jshintUnused = ikariam.backgroundView.updateCityDropdownMenu;
+            jshintUnused = ikariam.model.relatedCityData;
+            return true;
+        }).then((ret) => {
             hookFunction(ikariam.backgroundView, 'updateCityDropdownMenu', updateCitySelect);
             updateCitySelect();
-        }, 5000, 33);
+        }).catch(() => {});
 
-        waitFor.ajaxResponder((ajaxResponder) => {
+        waitFor.ajaxResponder().then((ajaxResponder) => {
             hookFunction(ajaxResponder, 'changeView', changeViewUpdate);
             changeViewUpdate();
-        });
+        }).catch(() => {});
 
         injectCSS(`
             img.citySelectTradegoodIcon {width:15px;height:12px;position:absolute;margin-top:5px;}
@@ -1915,6 +1822,18 @@
             #CityListing_sortingList button.up {background:url(/skin/friends/button17_up.png) no-repeat center 0px;}
             #CityListing_sortingList button.down {background:url(/skin/friends/button17_down.png) no-repeat center 0px;}
         `);
+
+/*
+        var cssElement;
+        function updateCSS() {
+            var css = [];
+
+            if(cssElement) removeElement(cssElement);
+            injectCSS(css.join(''), function(el){cssElement=el;});
+        }
+        updateCSS();
+*/
+
 
         TPL.set('CityListing_settingsWindow', `
             <div id="mainview">
@@ -1954,7 +1873,6 @@
             <tr>
                 <td style="padding-left: 0;">
                     <table><tbody id="CityListing_sortingList"></tbody></table>
-                    <table style="margin-top:5px;">{subTR}</table>
                 </td>
             </tr>
         `);
@@ -1967,35 +1885,16 @@
                 highlightSelected   : modData.highlightSelected,
                 sortList            : modData.sortList,
             };
-            var checkboxes2 = {
-                sortEverywhere      : modData.sortEverywhere,
-            };
 
             IkaTweaks.changeHTML('CityListing', TPL.get('CityListing_settingsWindow', {
                 settingsTR: TPL.getEach(checkboxes, function(checked, k){
-                    switch(k) {
-                        case 'sortList':
-                            return ['CityListing_settingListTR', {
-                                id      : k,
-                                text    : '{str_CityListing_'+k+'}',
-                                checked : (checked) ? 'checked="checked"' : '',
-                                subTR   : TPL.getEach(checkboxes2, function(checked, k){
-                                    return ['CityListing_settingTR', {
-                                        id      : k,
-                                        text    : '{str_CityListing_'+k+'}',
-                                        checked : (checked) ? 'checked="checked"' : '',
-                                    }];
-                                }),
-                            }];
-                        default:
-                            return ['CityListing_settingTR', {
-                                id      : k,
-                                text    : '{str_CityListing_'+k+'}',
-                                checked : (checked) ? 'checked="checked"' : '',
-                            }];
-                    }
+                    return [(k==='sortList'?'CityListing_settingListTR':'CityListing_settingTR'), {
+                        id      : k,
+                        text    : '{str_CityListing_'+k+'}',
+                        checked : (checked) ? 'checked="checked"' : '',
+                    }];
                 }),
-            }), function(){
+            })).then(() => {
 
                 var CityListing_sortingList = $('#CityListing_sortingList');
 
@@ -2052,9 +1951,6 @@
                     forEach(checkboxes, (_, k) => {
                         modData[k] = isChecked('#CityListing_settingCheckbox'+k);
                     });
-                    forEach(checkboxes2, (_, k) => {
-                        modData[k] = isChecked('#CityListing_settingCheckbox'+k);
-                    });
                     modData.sortedList = [];
                     $('#CityListing_sortingList tr').each(function(){
                         modData.sortedList.push(parseInt($(this).attr('cityId')));
@@ -2064,7 +1960,7 @@
                     IkaTweaks.success();
                 });
 
-            });
+            }).catch(() => {});
 
         });
 
@@ -2091,19 +1987,19 @@
                 maleMayorPremium: {
                     normal: '/skin/layout/advisors/mayor_premium.png',
                     active: '/skin/layout/advisors/mayor_premium_active.png',
-                    mini  : 'https://github.com/YveOne/Userscript-IkaTweaks/blob/master/images/maleMayorPremiumMini.png?raw=true',
+                    mini  : 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/maleMayorPremiumMini.png',
                 },
 
                 femaleMayor: {
                     normal: 'https://gf2.geo.gfsrv.net/cdnad/c65484ebe05e4218aa8af0a016f70f.png',
                     active: 'https://gf1.geo.gfsrv.net/cdn6b/8004819074813a1e74377e16bc39db.png',
-                    mini  : 'https://github.com/YveOne/Userscript-IkaTweaks/blob/master/images/femaleMayorMini.png?raw=true',
+                    mini  : 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/femaleMayorMini.png',
                 },
 
                 femaleMayorPremium: {
                     normal: 'https://gf2.geo.gfsrv.net/cdn43/438ff9314cd4594efbe0bd3cde2daa.png',
                     active: 'https://gf1.geo.gfsrv.net/cdn93/5ddaa2ef6569a1274842e5661aa7ec.png',
-                    mini  : 'https://github.com/YveOne/Userscript-IkaTweaks/blob/master/images/femaleMayorPremiumMini.png?raw=true',
+                    mini  : 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/femaleMayorPremiumMini.png',
                 },
 
                 barbarianMayor: {
@@ -2118,9 +2014,9 @@
                 },
 
                 onePieceLuffy: {
-                    normal: 'https://github.com/YveOne/Userscript-IkaTweaks/blob/master/images/onePieceLuffyNormal.png?raw=true',
-                    active: 'https://github.com/YveOne/Userscript-IkaTweaks/blob/master/images/onePieceLuffyActive.png?raw=true',
-                    mini  : 'https://github.com/YveOne/Userscript-IkaTweaks/blob/master/images/onePieceLuffyMini.png?raw=true',
+                    normal: 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/onePieceLuffyNormal.png',
+                    active: 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/onePieceLuffyActive.png',
+                    mini  : 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/onePieceLuffyMini.png',
                 },
 
             },
@@ -2136,7 +2032,7 @@
                     normal: '/skin/layout/advisors/general_premium.png',
                     active: '/skin/layout/advisors/general_premium_active.png',
                     alert : '/skin/layout/advisors/general_premium_alert.png',
-                    mini  : 'https://github.com/YveOne/Userscript-IkaTweaks/blob/master/images/maleGeneralPremiumMini.png?raw=true',
+                    mini  : 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/maleGeneralPremiumMini.png',
                 },
 
                 femaleGeneral: {
@@ -2166,10 +2062,10 @@
                 },
 
                 onePieceZoro: {
-                    normal: 'https://github.com/YveOne/Userscript-IkaTweaks/blob/master/images/onePieceZoroNormal.png?raw=true',
-                    active: 'https://github.com/YveOne/Userscript-IkaTweaks/blob/master/images/onePieceZoroActive.png?raw=true',
-                    alert : 'https://github.com/YveOne/Userscript-IkaTweaks/blob/master/images/onePieceZoroAlert.png?raw=true',
-                    mini  : 'https://github.com/YveOne/Userscript-IkaTweaks/blob/master/images/onePieceZoroMini.png?raw=true',
+                    normal: 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/onePieceZoroNormal.png',
+                    active: 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/onePieceZoroActive.png',
+                    alert : 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/onePieceZoroAlert.png',
+                    mini  : 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/onePieceZoroMini.png',
                 },
 
             },
@@ -2183,7 +2079,7 @@
                 maleScientistPremium: {
                     normal: '/skin/layout/advisors/scientist_premium.png',
                     active: '/skin/layout/advisors/scientist_premium_active.png',
-                    mini  : 'https://github.com/YveOne/Userscript-IkaTweaks/blob/master/images/maleScientistPremiumMini.png?raw=true',
+                    mini  : 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/maleScientistPremiumMini.png',
                 },
 
                 femaleScientist: {
@@ -2210,9 +2106,9 @@
                 },
 
                 onePieceUsopp: {
-                    normal: 'https://github.com/YveOne/Userscript-IkaTweaks/blob/master/images/onePieceUsoppNormal.png?raw=true',
-                    active: 'https://github.com/YveOne/Userscript-IkaTweaks/blob/master/images/onePieceUsoppActive.png?raw=true',
-                    mini  : 'https://github.com/YveOne/Userscript-IkaTweaks/blob/master/images/onePieceUsoppMini.png?raw=true',
+                    normal: 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/onePieceUsoppNormal.png',
+                    active: 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/onePieceUsoppActive.png',
+                    mini  : 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/onePieceUsoppMini.png',
                 },
 
             },
@@ -2226,7 +2122,7 @@
                 maleDiplomatPremium: {
                     normal: '/skin/layout/advisors/diplomat_premium.png',
                     active: '/skin/layout/advisors/diplomat_premium_active.png',
-                    mini  : 'https://github.com/YveOne/Userscript-IkaTweaks/blob/master/images/maleDiplomatPremiumMini.png?raw=true',
+                    mini  : 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/maleDiplomatPremiumMini.png',
                 },
 
                 femaleDiplomat: {
@@ -2252,9 +2148,9 @@
                 },
 
                 onePieceNami: {
-                    normal: 'https://github.com/YveOne/Userscript-IkaTweaks/blob/master/images/onePieceNamiNormal.png?raw=true',
-                    active: 'https://github.com/YveOne/Userscript-IkaTweaks/blob/master/images/onePieceNamiActive.png?raw=true',
-                    mini  : 'https://github.com/YveOne/Userscript-IkaTweaks/blob/master/images/onePieceNamiMini.png?raw=true',
+                    normal: 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/onePieceNamiNormal.png',
+                    active: 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/onePieceNamiActive.png',
+                    mini  : 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/onePieceNamiMini.png',
                 },
             },
         };
@@ -2377,7 +2273,7 @@
                     }];
                 }),
 
-            }), function(){
+            })).then(() => {
                 $('#js_ChangeAdvisors_saveSettingsBtn').click(function(){
                     forEach(advisorImages, (_, advisorId) => {
                         modData.replacements[advisorId] = AdvisorSelects[advisorId].val();
@@ -2408,7 +2304,7 @@
                     });
                 });
 
-            });
+            }).catch(() => {});
         });
 
     });
@@ -2422,8 +2318,8 @@
     IkaTweaks.setModule('MoveBuildings', function(modData, modDataSave){
         if(typeof modData.customPositions           == 'undefined') modData.customPositions         = {};
 
-        var moveBuildingsBackground = 'https://github.com/YveOne/Userscript-IkaTweaks/blob/master/images/moveBuildingsBackground.jpg?raw=true';
-        var moveBuildingsEmptyButton = 'https://github.com/YveOne/Userscript-IkaTweaks/blob/master/images/moveBuildingsEmptyButton.png?raw=true';
+        var moveBuildingsBackground = 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/moveBuildingsBackground.jpg';
+        var moveBuildingsEmptyButton = 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/moveBuildingsEmptyButton.png';
 
         const BUILDING_POSITIONS_COUNT = 20;
         function buildEmptyPositions() {
@@ -2545,7 +2441,7 @@
                                     <input id="js_MoveBuildings_savePositionsButton" type="button" class="button" value="{str_MoveBuildings_SavePositions}" />
                                 </th>
                             </tr>
-                            <tr><td colspan="2">
+                            <tr><td colspan="2" style="padding:0;">
                                 <div id="buildingDetail"><div class="building_nav" style="position:relative;"></div></div>
                             </td></tr>
                             <tr><th colspan="2"><i>{str_MoveBuildings_DragDropHint}</i></th></tr>
@@ -2584,33 +2480,25 @@
 
         // fast update after page load
         // no need to check if we are in city view because the expandslot is only visible in city view
-        waitFor(function(){
-            try {
-                return document.querySelector('li.expandable.slot0.military').getAttribute('onclick').match(/cityId=(\d+)/)[1];
-            } catch(e) {}
-            return false;
-        }, function(cityId){
-            if(!cityId) return;
+        waitFor(() => {
+            return document.querySelector('li.expandable.slot0.military').getAttribute('onclick').match(/cityId=(\d+)/)[1];
+        }).then((cityId) => {
             updatePositionsCSS('city_'+cityId);
             if(locationHideStyleEle) removeElement(locationHideStyleEle);
-        }, 2000, 33);
+        }).catch(() => {});
 
         // later updates after city change
-        waitFor(function(){
-            try {
-                jshintUnused = dataSetForView.relatedCityData;
-                jshintUnused = ikariam.backgroundView.screen.update;
-                return true;
-            } catch(e) {}
-            return false;
-        }, function(v){
-            if(!v) return;
+        waitFor(() => {
+            jshintUnused = dataSetForView.relatedCityData;
+            jshintUnused = ikariam.backgroundView.screen.update;
+            return true;
+        }).then(() => {
             if(ikariam.backgroundView.id != 'city') return;
             buildPositionsData(dataSetForView.relatedCityData);
             hookFunction(ikariam.backgroundView.screen, 'update', function(){
                 updatePositionsCSS(ikariam.model.relatedCityData.selectedCity);
             });
-        }, 2000, 33);
+        }).catch(() => {});
 
         var showPositionsWindow;
 
@@ -2743,7 +2631,7 @@
 
             IkaTweaks.changeHTML('MoveBuildings', TPL.get('MoveBuildings_positionsWindow', {
                 select : citySelect.tpl(),
-            }), function(){
+            })).then(() => {
                 $('#js_tab_MoveBuildings_positionsWindow').addClass('selected');
                 buildWorkingButtons();
                 citySelect.change(function(){
@@ -2752,7 +2640,7 @@
                 });
                 updateWorkingPositions();
                 $('#js_MoveBuildings_savePositionsButton').click(saveWorking);
-            });
+            }).catch(() => {});
 
         };
 
@@ -2816,6 +2704,8 @@
         'str_GeneralTweaks_fixWindowTopPadding'             : 'Fix window top padding (looks nicer)',
         'str_GeneralTweaks_fixScrollbars'                   : 'Fix scrollbars',
         'str_GeneralTweaks_fixHoverEffectSwitching'         : 'Fix hover effects switching while mouseover on page load',
+        'str_GeneralTweaks_fixDarkSelectActiveColor'        : 'Fix active font color of dark drop down menus',
+        'str_GeneralTweaks_fixWindowTabSizes'               : 'Fix window tab sizes',
         // -- GeneralTweaks - antiAds
         'str_GeneralTweaks_antiAds'                     : 'Anti Advertising',
         'str_GeneralTweaks_adsHideSpeedUpButtons'           : 'Remove speed-up buttons',
@@ -2848,6 +2738,7 @@
         'str_GeneralTweaks_resources'                   : 'Cost resources',
         'str_GeneralTweaks_resShowMissing'                  : 'Show missing resources',
         'str_GeneralTweaks_resShowRemaining'                : 'Show remaining resources',
+        'str_GeneralTweaks_warehouseShowRemainingSave'      : 'Show remaing secure resources in warehouse',
         // -- GeneralTweaks - interactive
         'str_GeneralTweaks_interactive'                 : 'Interactive',
         'str_GeneralTweaks_actShowMouseoverPlaques'         : 'Show building name on plaque on mouse over',
@@ -2870,7 +2761,6 @@
         'str_CityListing_showTradegoods'        : 'Show Tradegoods',
         'str_CityListing_highlightSelected'     : 'Highlight selected city',
         'str_CityListing_sortList'              : 'Use custom sorting',
-        'str_CityListing_sortEverywhere'        : 'Use custom sorting everywhere (palace, museum, ...)',
 
         // -- ChangeAdvisors
         'str_ChangeAdvisors_name'                    : 'Individual advisors',
@@ -2969,6 +2859,8 @@
         'str_GeneralTweaks_fixWindowTopPadding'             : 'Fix oberen Abstand vom Fenster',
         'str_GeneralTweaks_fixScrollbars'                   : 'Fix Scrollbalken',
         'str_GeneralTweaks_fixHoverEffectSwitching'         : 'Fix Hover-Effekte-Wechsel',
+        'str_GeneralTweaks_fixDarkSelectActiveColor'        : 'Fix Aktive Textfarbe von dunklen Dropdown-Menüs',
+        'str_GeneralTweaks_fixWindowTabSizes'               : 'Fix Tab-Größen im Fenster',
         // -- GeneralTweaks - antiAds
         'str_GeneralTweaks_antiAds'                     : 'Anti-Werbung',
         'str_GeneralTweaks_adsHideSpeedUpButtons'           : 'Entferne Speed-Up-Buttons',
@@ -3001,6 +2893,7 @@
         'str_GeneralTweaks_resources'                   : 'Ressourcen-Kosten',
         'str_GeneralTweaks_resShowMissing'                  : 'Zeige fehlende Ressourcen',
         'str_GeneralTweaks_resShowRemaining'                : 'Zeige verbleibende Ressourcen',
+        'str_GeneralTweaks_warehouseShowRemainingSave'      : 'Zeige verbleibende sichere Ressourcen im Lagerhaus',
         // -- GeneralTweaks - interactive
         'str_GeneralTweaks_interactive'                 : 'Interaktiv',
         'str_GeneralTweaks_actShowMouseoverPlaques'         : 'Zeige Gebäudenamen auf Plaketten bei Mouse-Over',
@@ -3024,7 +2917,6 @@
         'str_CityListing_showTradegoods'        : 'Zeige Luxusgüter',
         'str_CityListing_highlightSelected'     : 'Ausgewählte Stadt hervorheben',
         'str_CityListing_sortList'              : 'Eigene Reihenfolge',
-        'str_CityListing_sortEverywhere'        : 'Eigene Reihenfolge überall benutzen (Palast, Museum, ...)',
 
         // -- ChangeAdvisors
         'str_ChangeAdvisors_name'                    : 'Individuelle Berater',
@@ -3071,5 +2963,6 @@
         'str_MoveBuildings_restrictedPosition'  : 'Dieses Gebäude kann dort nicht platziert werden',
 
     });
+
 
 })(window);
