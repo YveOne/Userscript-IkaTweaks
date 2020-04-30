@@ -4,7 +4,7 @@
 //
 // @name            IkaTweaks
 // @description     Improvements for Ikariam
-// @version         2.4
+// @version         2.5
 // @author          Yvonne P.
 // @license         MIT; https://opensource.org/licenses/MIT
 // @icon            http://de.ikariam.gameforge.com/favicon.ico
@@ -127,7 +127,7 @@
         var reParse=new RegExp('\\{[a-zA-Z0-9_]+\\}','gi');
         this.set=function(id,html){tplList[id]=html;};
         this.get=function(id,data){id=id||'';return (tplList[id])?that.parse(tplList[id],data):'Template "'+id+'" not found';};
-        this.getEach=function(obj,func){var ret=[],keys=Object.keys(obj);while(keys.length){var k=keys.shift(),a=func(obj[k],k,obj);if(a)ret.push(that.get.apply(null,a));}return ret.join('');};
+        this.each=function(obj,func){var ret=[],keys=Object.keys(obj);while(keys.length){var k=keys.shift(),a=func(obj[k],k,obj);if(a)ret.push(that.get.apply(null,a));}return ret.join('');};
         this.parse=function(html,data){html=html||'';data=data||{};return html.replace(reParse,function(x){var y=data[x.substr(1,x.length-2)];return (y!==null&&y!==undefined)?y:x;});};
     }
 
@@ -179,7 +179,7 @@
             return TPL.get('SelectContainer', {
                 selectSize      : size,
                 selectId        : selectId,
-                selectOptions   : TPL.getEach(options, function(v, k){
+                selectOptions   : TPL.each(options, function(v, k){
                     return ['SelectOption', {
                         value   : k,
                         text    : v,
@@ -292,13 +292,13 @@
                     html = TPL.get('IkaTweaksFrame', {
                         version : GM_info.script.version,
                         mainview: html,
-                        buttons1: TPL.getEach(sidebarButtons, function(btn, i){
+                        buttons1: TPL.each(sidebarButtons, function(btn, i){
                             return (!btn.useTop) ? null : ['IkaTweaksSidebar_button', {
                                 btnId: 'IkaTweaksSidebar_button'+i,
                                 btnText: btn.text
                             }];
                         }),
-                        buttons2: TPL.getEach(sidebarButtons, function(btn, i){
+                        buttons2: TPL.each(sidebarButtons, function(btn, i){
                             return (btn.useTop) ? null : ['IkaTweaksSidebar_button', {
                                 btnId: 'IkaTweaksSidebar_button'+i,
                                 btnText: btn.text
@@ -627,7 +627,7 @@
         showSettingsWindow = function(){
             IkaTweaks.changeHTML('IkaTweaks', TPL.get('IkaTweaks_tabbedWindow', {
                 mainviewContent: TPL.get('IkaTweaks_modulesWindow', {
-                    modulesTR: TPL.getEach(definedModules, (mod, modId) => {
+                    modulesTR: TPL.each(definedModules, (mod, modId) => {
                         return ['IkaTweaks_modulesTR', {
                             modId   : modId,
                             modName : mod.name,
@@ -714,7 +714,7 @@
             IkaTweaks.changeHTML('IkaTweaks', TPL.get('IkaTweaks_tabbedWindow', {
                 mainviewContent: TPL.get('IkaTweaks_versionWindow', {
                     lastResult: versionCheckResult,
-                    settingsTR: TPL.getEach(checkboxes, (checked, k) => {
+                    settingsTR: TPL.each(checkboxes, (checked, k) => {
                         return ['IkaTweaks_settingTR', {
                             id      : k,
                             text    : '{str_'+k+'}',
@@ -889,6 +889,9 @@
         if(typeof modData.fleetHideSpeedColumn          == 'undefined') modData.fleetHideSpeedColumn        = false;
         if(typeof modData.fleetHidePremiumFleetInfo     == 'undefined') modData.fleetHidePremiumFleetInfo   = false;
         if(typeof modData.fleetShowCapacities           == 'undefined') modData.fleetShowCapacities         = false;
+        if(typeof modData.fleetDontBreakLines           == 'undefined') modData.fleetDontBreakLines         = false;
+        if(typeof modData.fleetReadableFilterButtons    == 'undefined') modData.fleetReadableFilterButtons  = false;
+        if(typeof modData.fleetHideZeroFilterButtons    == 'undefined') modData.fleetHideZeroFilterButtons  = false;
 
         ///////////////////////////////////////////////////////////////////////
 
@@ -1173,9 +1176,24 @@
         function updateFleetMovements() {
             if (document.getElementById('militaryAdvisor')) {
 
+                $('#militaryMovementsFleetMovementsFilters').hide();
+                if (!$('#militaryMovementsFleetMovementsFilters')[0].hasAttribute('_onclick')) {
+                    $('#militaryMovementsFleetMovementsFilters').attr('_onclick', '');
+                    $('#militaryMovementsFleetMovementsFilters > div').on('click', updateFleetMovements);
+                }
+
                 waitFor(() => {
                     return ikariam.templateView.viewScripts.militaryAdvisor;
                 }).then(() => {
+
+                    $('#militaryMovementsFleetMovementsFilters').show();
+                    if (modData.fleetHideZeroFilterButtons) {
+                        $('#militaryMovementsFleetMovementsFilters div.amount').each(function(){
+                            if (!parseInt($(this).text())) {
+                                $(this).parent().addClass('hidden');
+                            }
+                        });
+                    }
 
                     if (modData.miliHidePremiumFleetInfo) {
                         $('table.military_event_table td.spyMilitary.magnify_icon').each(function(){
@@ -1186,12 +1204,6 @@
                                 t.attr('onclick', null);
                             }
                         });
-                        //$('table.military_event_table tr:not(.own) td.spyMilitary.magnify_icon').each(function(){
-                        //    var td = $(this);
-                        //    td.css('opacity', 0);
-                        //    td.css('cursor', 'unset');
-                        //    td.attr('onclick', null);
-                        //});
                     }
 
                     if (modData.fleetShowCapacities) {
@@ -1305,7 +1317,7 @@
             }
             if (modData.fixWindowTabSizes) {
                 css.push('#container .tabmenu .tab { border: 1px solid transparent; border-bottom: 0; }');
-                css.push('#container .tabmenu .selected, #container .tabmenu .tab:hover { padding: 1px 3px 0px 3px !important; }');
+                css.push('#container .tabmenu .selected, #container .tabmenu .tab:hover { padding: 2px 3px 1px 3px !important; }');
             }
 
 
@@ -1446,6 +1458,29 @@
                 css.push('#js_MilitaryMovementsFleetMovementsTable table tr th:nth-child(3) { display: none; }');
                 css.push('#js_MilitaryMovementsFleetMovementsTable table tr td:nth-child(3) { display: none; }');
             }
+            if (modData.fleetDontBreakLines) {
+                css.push('#js_MilitaryMovementsFleetMovementsTable table { white-space: nowrap; }');
+            }
+            if (modData.fleetReadableFilterButtons) {
+                css.push('#militaryMovementsFleetMovementsFilters { background-color: #faeac6; height: 44px; margin-right: 3.5px; padding: 5px 9px 0; }');
+                css.push('#militaryMovementsFleetMovementsFilters > div.missionFilter:not(.selected) { opacity: 0.5; }');
+                css.push('#militaryMovementsFleetMovementsFilters > div.missionFilter:not(.selected):hover { opacity: 0.75; }');
+                css.push('#militaryMovementsFleetMovementsFilters > div.missionFilter > div.mission_icon.all { background-color: #fff8d7; }');
+                css.push('#militaryMovementsFleetMovementsFilters > div.missionFilter > div.amount { background: #532000; }');
+                css.push('#militaryMovementsFleetMovementsFilters > div.missionFilter > div.amount { color: #fff8d7; }');
+                css.push('#militaryMovementsFleetMovementsFilters > div.missionFilter { cursor: pointer; }');
+                css.push('#militaryMovementsFleetMovementsFilters > div.missionFilter { margin-right: 0; }');
+                css.push('#militaryMovementsFleetMovementsFilters > div.missionFilter > div.amount { margin-top: -2px; line-height: 14px; }');
+            }
+            if (modData.fleetHideZeroFilterButtons) {
+                css.push('#militaryMovementsFleetMovementsFilters > div.missionFilter.hidden { display: none; }');
+            }
+
+
+
+
+
+
 
             //
             // interactive
@@ -1534,6 +1569,9 @@
                 'fleetHideSpeedColumn',
                 'fleetHidePremiumFleetInfo',
                 'fleetShowCapacities',
+                'fleetDontBreakLines',
+                'fleetReadableFilterButtons',
+                'fleetHideZeroFilterButtons',
             ]],
         ];
 
@@ -1596,12 +1634,12 @@
             var cityCustomBackgroundSelect = new SelectDropDown('GeneralTweaks_customBackgroundSelect', 95, cityCustomBackgroundList, modData.cityCustomBackground);
 
             IkaTweaks.changeHTML('GeneralTweaks', TPL.get('GeneralTweaks_settingsWindow', {
-                categories: TPL.getEach(categories, function(category){
+                categories: TPL.each(categories, function(category){
                     var categoryId = category[0];
                     var checkboxes = category[1];
                     return ['GeneralTweaks_category', {
                         categoryTitle: '{str_GeneralTweaks_'+categoryId+'}',
-                        categoryRows:  TPL.getEach(checkboxes, function(k){
+                        categoryRows:  TPL.each(checkboxes, function(k){
                             switch(k) {
                                 case 'cityUseCustomBackground':
                                     return ['GeneralTweaks_settingSelectTR', {
@@ -1887,7 +1925,7 @@
             };
 
             IkaTweaks.changeHTML('CityListing', TPL.get('CityListing_settingsWindow', {
-                settingsTR: TPL.getEach(checkboxes, function(checked, k){
+                settingsTR: TPL.each(checkboxes, function(checked, k){
                     return [(k==='sortList'?'CityListing_settingListTR':'CityListing_settingTR'), {
                         id      : k,
                         text    : '{str_CityListing_'+k+'}',
@@ -1983,11 +2021,13 @@
                     normal: '/skin/layout/advisors/mayor.png',
                     active: '/skin/layout/advisors/mayor_active.png',
                     mini  : '/skin/minimized/tradeAdvisor.png',
+                    fixes : 'background-position-y:1px;',
                 },
                 maleMayorPremium: {
                     normal: '/skin/layout/advisors/mayor_premium.png',
                     active: '/skin/layout/advisors/mayor_premium_active.png',
                     mini  : 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/maleMayorPremiumMini.png',
+                    fixes : 'background-position-y:1px;',
                 },
 
                 femaleMayor: {
@@ -2017,6 +2057,7 @@
                     normal: 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/onePieceLuffyNormal.png',
                     active: 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/onePieceLuffyActive.png',
                     mini  : 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/onePieceLuffyMini.png',
+                    fixes : 'background-position-y:1px;',
                 },
 
             },
@@ -2027,12 +2068,14 @@
                     active: '/skin/layout/advisors/general_active.png',
                     alert : '/skin/layout/advisors/general_alert.png',
                     mini  : '/skin/minimized/militaryAdvisor.png',
+                    fixes : 'background-position-y:1px;',
                 },
                 maleGeneralPremium: {
                     normal: '/skin/layout/advisors/general_premium.png',
                     active: '/skin/layout/advisors/general_premium_active.png',
                     alert : '/skin/layout/advisors/general_premium_alert.png',
                     mini  : 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/maleGeneralPremiumMini.png',
+                    fixes : 'background-position-y:1px;',
                 },
 
                 femaleGeneral: {
@@ -2066,6 +2109,7 @@
                     active: 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/onePieceZoroActive.png',
                     alert : 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/onePieceZoroAlert.png',
                     mini  : 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/onePieceZoroMini.png',
+                    fixes : 'background-position-y:1px;',
                 },
 
             },
@@ -2075,11 +2119,13 @@
                     normal: '/skin/layout/advisors/scientist.png',
                     active: '/skin/layout/advisors/scientist_active.png',
                     mini  : '/skin/minimized/researchAdvisor.png',
+                    fixes : 'background-position-y:1px;',
                 },
                 maleScientistPremium: {
                     normal: '/skin/layout/advisors/scientist_premium.png',
                     active: '/skin/layout/advisors/scientist_premium_active.png',
                     mini  : 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/maleScientistPremiumMini.png',
+                    fixes : 'background-position-y:1px;',
                 },
 
                 femaleScientist: {
@@ -2109,6 +2155,7 @@
                     normal: 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/onePieceUsoppNormal.png',
                     active: 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/onePieceUsoppActive.png',
                     mini  : 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/onePieceUsoppMini.png',
+                    fixes : 'background-position-y:1px;',
                 },
 
             },
@@ -2118,11 +2165,13 @@
                     normal: '/skin/layout/advisors/diplomat.png',
                     active: '/skin/layout/advisors/diplomat_active.png',
                     mini  : '/skin/minimized/diplomacyAdvisor.png',
+                    fixes : 'background-position-y:1px;',
                 },
                 maleDiplomatPremium: {
                     normal: '/skin/layout/advisors/diplomat_premium.png',
                     active: '/skin/layout/advisors/diplomat_premium_active.png',
                     mini  : 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/maleDiplomatPremiumMini.png',
+                    fixes : 'background-position-y:1px;',
                 },
 
                 femaleDiplomat: {
@@ -2151,29 +2200,34 @@
                     normal: 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/onePieceNamiNormal.png',
                     active: 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/onePieceNamiActive.png',
                     mini  : 'https://raw.githubusercontent.com/YveOne/Userscript-IkaTweaks/master/images/onePieceNamiMini.png',
+                    fixes : 'background-position-y:1px;',
                 },
             },
         };
 
         var advisorsStyleRules = `
-            #header #advisors #advCities .normal{background-image:url({citiesNormal})}
-            #header #advisors #advCities .normalactive{background-image:url({citiesActive})}
-            #header #advisors #advCities .premium{background-image:url({citiesNormal})}
-            #header #advisors #advCities .premiumactive{background-image:url({citiesActive})}
-            #header #advisors #advMilitary .normal{background-image:url({militaryNormal})}
-            #header #advisors #advMilitary .normalactive{background-image:url({militaryActive})}
-            #header #advisors #advMilitary .normalalert{background-image:url({militaryAlert})}
-            #header #advisors #advMilitary .premium{background-image:url({militaryNormal})}
-            #header #advisors #advMilitary .premiumactive{background-image:url({militaryActive})}
-            #header #advisors #advMilitary .premiumalert{background-image:url({militaryAlert})}
-            #header #advisors #advResearch .normal{background-image:url({researchNormal})}
-            #header #advisors #advResearch .normalactive{background-image:url({researchActive})}
-            #header #advisors #advResearch .premium{background-image:url({researchNormal})}
-            #header #advisors #advResearch .premiumactive{background-image:url({researchActive})}
-            #header #advisors #advDiplomacy .normal{background-image:url({diplomacyNormal})}
-            #header #advisors #advDiplomacy .normalactive{background-image:url({diplomacyActive})}
-            #header #advisors #advDiplomacy .premium{background-image:url({diplomacyNormal})}
-            #header #advisors #advDiplomacy .premiumactive{background-image:url({diplomacyActive})}
+            #header #advisors #advCities a      {{citiesFixes}}
+            #header #advisors #advMilitary a    {{militaryFixes}}
+            #header #advisors #advResearch a    {{researchFixes}}
+            #header #advisors #advDiplomacy a   {{diplomacyFixes}}
+            #header #advisors #advCities .normal            {background-image:url({citiesNormal})}
+            #header #advisors #advCities .normalactive      {background-image:url({citiesActive})}
+            #header #advisors #advCities .premium           {background-image:url({citiesNormal})}
+            #header #advisors #advCities .premiumactive     {background-image:url({citiesActive})}
+            #header #advisors #advMilitary .normal          {background-image:url({militaryNormal})}
+            #header #advisors #advMilitary .normalactive    {background-image:url({militaryActive})}
+            #header #advisors #advMilitary .normalalert     {background-image:url({militaryAlert})}
+            #header #advisors #advMilitary .premium         {background-image:url({militaryNormal})}
+            #header #advisors #advMilitary .premiumactive   {background-image:url({militaryActive})}
+            #header #advisors #advMilitary .premiumalert    {background-image:url({militaryAlert})}
+            #header #advisors #advResearch .normal          {background-image:url({researchNormal})}
+            #header #advisors #advResearch .normalactive    {background-image:url({researchActive})}
+            #header #advisors #advResearch .premium         {background-image:url({researchNormal})}
+            #header #advisors #advResearch .premiumactive   {background-image:url({researchActive})}
+            #header #advisors #advDiplomacy .normal         {background-image:url({diplomacyNormal})}
+            #header #advisors #advDiplomacy .normalactive   {background-image:url({diplomacyActive})}
+            #header #advisors #advDiplomacy .premium        {background-image:url({diplomacyNormal})}
+            #header #advisors #advDiplomacy .premiumactive  {background-image:url({diplomacyActive})}
             #container #tradeAdvisor_c:before, #container #premiumTradeAdvisor_c:before, #container #tradeRoutes_c:before, #container #registrationGifts_c:before, #container #dailyTasks_c:before, #container #dailyTasksRewards_c:before, #container #premiumTradeAdvisorCitizens_c:before, #container #premiumTradeAdvisorBuildings_c:before {
                 content: url({citiesMini});
             }
@@ -2199,16 +2253,20 @@
                 citiesNormal        : cities.normal,
                 citiesActive        : cities.active,
                 citiesMini          : cities.mini,
+                citiesFixes         : cities.fixes||'',
                 militaryNormal      : military.normal,
                 militaryActive      : military.active,
                 militaryAlert       : military.alert,
                 militaryMini        : military.mini,
+                militaryFixes       : military.fixes||'',
                 researchNormal      : research.normal,
                 researchActive      : research.active,
                 researchMini        : research.mini,
+                researchFixes       : research.fixes||'',
                 diplomacyNormal     : diplomacy.normal,
                 diplomacyActive     : diplomacy.active,
                 diplomacyMini       : diplomacy.mini,
+                diplomacyFixes      : diplomacy.fixes||'',
             }));
             if(cssElement) removeElement(cssElement);
             injectCSS(css.join(''), function(el){cssElement=el;});
@@ -2266,7 +2324,7 @@
             });
 
             IkaTweaks.changeHTML('ChangeAdvisors', TPL.get('ChangeAdvisors_settingsWindow', {
-                advisors: TPL.getEach(advisorImages, function(advisorData, advisorId){
+                advisors: TPL.each(advisorImages, function(advisorData, advisorId){
                     return ['ChangeAdvisors_advisorTR', {
                         text    : '{str_ChangeAdvisors_'+advisorId+'}',
                         select  : AdvisorSelects[advisorId].tpl(),
@@ -2751,6 +2809,9 @@
         'str_GeneralTweaks_fleetHideSpeedColumn'            : 'Hide speed column',
         'str_GeneralTweaks_fleetHidePremiumFleetInfo'       : 'Hide premium fleet info',
         'str_GeneralTweaks_fleetShowCapacities'             : 'Show Capacities',
+        'str_GeneralTweaks_fleetDontBreakLines'             : 'Don\'t break lines (could cause display error on large names)',
+        'str_GeneralTweaks_fleetReadableFilterButtons'      : 'Improve appearance of filter buttons (more readable)',
+        'str_GeneralTweaks_fleetHideZeroFilterButtons'      : 'Hide filter buttons without movements',
 
 
 
@@ -2906,6 +2967,9 @@
         'str_GeneralTweaks_fleetHideSpeedColumn'            : 'Verstecke Spalte für Geschwindigkeit',
         'str_GeneralTweaks_fleetHidePremiumFleetInfo'       : 'Verstecke Premium-Flotten-Info',
         'str_GeneralTweaks_fleetShowCapacities'             : 'Zeige Kapazitäten',
+        'str_GeneralTweaks_fleetDontBreakLines'             : 'Zeilen nicht umbrechen (kann bei langen Namen Fehler verursachen)',
+        'str_GeneralTweaks_fleetReadableFilterButtons'      : 'Aussehen der Filter-Buttons verbessern (lesbarer machen)',
+        'str_GeneralTweaks_fleetHideZeroFilterButtons'      : 'Verstecke Filter-Buttons ohne Truppen/Flotten-Bewegungen',
 
 
 
