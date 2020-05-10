@@ -4,7 +4,7 @@
 //
 // @name            IkaTweaks
 // @description     Improvements for Ikariam
-// @version         2.5
+// @version         2.6
 // @author          Yvonne P.
 // @license         MIT; https://opensource.org/licenses/MIT
 // @icon            http://de.ikariam.gameforge.com/favicon.ico
@@ -843,6 +843,7 @@
         if(typeof modData.fixHoverEffectSwitching   == 'undefined') modData.fixHoverEffectSwitching     = true;
         if(typeof modData.fixDarkSelectActiveColor  == 'undefined') modData.fixDarkSelectActiveColor    = true;
         if(typeof modData.fixWindowTabSizes         == 'undefined') modData.fixWindowTabSizes           = true;
+        if(typeof modData.removeBlueLinkBorders     == 'undefined') modData.removeBlueLinkBorders       = true;
 
 
         // anti ads
@@ -892,6 +893,10 @@
         if(typeof modData.fleetDontBreakLines           == 'undefined') modData.fleetDontBreakLines         = false;
         if(typeof modData.fleetReadableFilterButtons    == 'undefined') modData.fleetReadableFilterButtons  = false;
         if(typeof modData.fleetHideZeroFilterButtons    == 'undefined') modData.fleetHideZeroFilterButtons  = false;
+        if(typeof modData.fleetMouseOverFleetInfo      == 'undefined') modData.fleetMouseOverFleetInfo    = false;
+
+
+
 
         ///////////////////////////////////////////////////////////////////////
 
@@ -1176,17 +1181,21 @@
         function updateFleetMovements() {
             if (document.getElementById('militaryAdvisor')) {
 
-                $('#militaryMovementsFleetMovementsFilters').hide();
+//http://gf3.geo.gfsrv.net/cdnb4/c8d5abf2d65cd8386593aced475cae.js
+
                 if (!$('#militaryMovementsFleetMovementsFilters')[0].hasAttribute('_onclick')) {
                     $('#militaryMovementsFleetMovementsFilters').attr('_onclick', '');
                     $('#militaryMovementsFleetMovementsFilters > div').on('click', updateFleetMovements);
                 }
 
+                $('#militaryMovementsFleetMovementsFilters').hide();
                 waitFor(() => {
-                    return ikariam.templateView.viewScripts.militaryAdvisor;
-                }).then(() => {
-
+                    return ikariam.templateView.viewScripts.militaryAdvisor.militaryMovementsFleetMovements;
+                }).then((m) => {
                     $('#militaryMovementsFleetMovementsFilters').show();
+
+                    //hookFunction(m, 'selectFilter', updateFleetMovements);
+
                     if (modData.fleetHideZeroFilterButtons) {
                         $('#militaryMovementsFleetMovementsFilters div.amount').each(function(){
                             if (!parseInt($(this).text())) {
@@ -1195,7 +1204,7 @@
                         });
                     }
 
-                    if (modData.miliHidePremiumFleetInfo) {
+                    if (modData.fleetHidePremiumFleetInfo) {
                         $('table.military_event_table td.spyMilitary.magnify_icon').each(function(){
                             var t = $(this);
                             if (t.find('.unit_detail_icon').length === 0) {
@@ -1234,7 +1243,37 @@
                                     // SHOULD NOT HAPPEN !!!
                                 }
                             });
-                            $('td:nth-child(4)', this).append(`<div>${used} / ${space}</div>`);
+                            if (space) {
+                                $('td:nth-child(4)', this).append(`<div>${used} / ${space}</div>`);
+                            }
+                        });
+                    }
+
+                    if (modData.fleetMouseOverFleetInfo) {
+                        $('table.military_event_table tr:first-child th[colspan="2"]').attr('colspan', null);
+                        function triggerOver() {
+                            $(document).trigger("closeExclusiveInfo");
+                            var id = $(this).closest('tr').attr('data-fleet-id');
+                            ikariam.controller.clickTarget = this;
+                            ikariam.controller.actionMonitor.toggleExclusiveInfo('fleetInfo'+id);
+                        }
+                        function triggerOut() {
+                            $('#exclusiveTooltip').remove();
+                        }
+                        $('table.military_event_table tr:not([data-fleet-id]) td.spyMilitary.magnify_icon').each(function(){
+                            var td = $(this);
+                            var tr = td.closest('tr');
+                            var prev = td.prev();
+                            if (td[0].hasAttribute('onclick')) {
+                                tr.attr('data-fleet-id', td.attr('onclick').match(/fleetInfo(\d+)/)[1]);
+                                prev.on("mouseover", triggerOver);
+                            } else {
+                                tr.attr('data-fleet-id', '');
+                            }
+                            prev.on("mouseout", triggerOut);
+                            td.css('display', 'none');
+                            $('div', prev).css('pointer-events', 'none');
+                            prev.attr('title', null);
                         });
                     }
 
@@ -1318,6 +1357,9 @@
             if (modData.fixWindowTabSizes) {
                 css.push('#container .tabmenu .tab { border: 1px solid transparent; border-bottom: 0; }');
                 css.push('#container .tabmenu .selected, #container .tabmenu .tab:hover { padding: 2px 3px 1px 3px !important; }');
+            }
+            if (modData.removeBlueLinkBorders) {
+                css.push('a { border: 0; text-decoration: none; outline: none; }');
             }
 
 
@@ -1475,6 +1517,9 @@
             if (modData.fleetHideZeroFilterButtons) {
                 css.push('#militaryMovementsFleetMovementsFilters > div.missionFilter.hidden { display: none; }');
             }
+            if (modData.miliHidePremiumFleetInfo) {
+                css.push('#exclusiveTooltip { pointer-events: none; }');
+            }
 
 
 
@@ -1525,6 +1570,7 @@
                 'fixHoverEffectSwitching',
                 'fixDarkSelectActiveColor',
                 'fixWindowTabSizes',
+                'removeBlueLinkBorders',
             ]],
             ['antiAds', [
                 'adsHideSpeedUpButtons',
@@ -1572,6 +1618,7 @@
                 'fleetDontBreakLines',
                 'fleetReadableFilterButtons',
                 'fleetHideZeroFilterButtons',
+                'fleetMouseOverFleetInfo',
             ]],
         ];
 
@@ -1740,11 +1787,13 @@
 
         function updateCitySelect_appendTradegoods() {
             var relatedCityData = ikariam.model.relatedCityData, relatedCity = relatedCityData[relatedCityData.selectedCity];
-            $('#js_citySelectContainer span').append(getTradegoodImage('span', relatedCity.id, relatedCity.tradegood));
+            if (relatedCity.relationship == 'ownCity') {
+                $('#js_citySelectContainer span').append(getTradegoodImage('span', relatedCity.id, relatedCity.tradegood));
+            }
             var citySelectUl = $('#dropDown_js_citySelectContainer ul');
             citySelectUl.addClass('width'+citySelectUl.width());
             forEach(relatedCityData, (relatedCity, cityKey) => {
-                if (relatedCity && relatedCity.relationship == 'ownCity') {
+                if (relatedCity && relatedCity.relationship == 'ownCity' && relatedCity.tradegood) {
                     $('#dropDown_js_citySelectContainer li[selectvalue="'+relatedCity.id+'"]').append(getTradegoodImage('li', relatedCity.id, relatedCity.tradegood));
                 }
             });
@@ -2764,6 +2813,7 @@
         'str_GeneralTweaks_fixHoverEffectSwitching'         : 'Fix hover effects switching while mouseover on page load',
         'str_GeneralTweaks_fixDarkSelectActiveColor'        : 'Fix active font color of dark drop down menus',
         'str_GeneralTweaks_fixWindowTabSizes'               : 'Fix window tab sizes',
+        'str_GeneralTweaks_removeBlueLinkBorders'           : 'Remove blue borders from active Links',
         // -- GeneralTweaks - antiAds
         'str_GeneralTweaks_antiAds'                     : 'Anti Advertising',
         'str_GeneralTweaks_adsHideSpeedUpButtons'           : 'Remove speed-up buttons',
@@ -2812,6 +2862,7 @@
         'str_GeneralTweaks_fleetDontBreakLines'             : 'Don\'t break lines (could cause display error on large names)',
         'str_GeneralTweaks_fleetReadableFilterButtons'      : 'Improve appearance of filter buttons (more readable)',
         'str_GeneralTweaks_fleetHideZeroFilterButtons'      : 'Hide filter buttons without movements',
+        'str_GeneralTweaks_fleetMouseOverFleetInfo'         : 'Hide magnify icon and show fleet info on mouse over',
 
 
 
@@ -2922,6 +2973,7 @@
         'str_GeneralTweaks_fixHoverEffectSwitching'         : 'Fix Hover-Effekte-Wechsel',
         'str_GeneralTweaks_fixDarkSelectActiveColor'        : 'Fix Aktive Textfarbe von dunklen Dropdown-Menüs',
         'str_GeneralTweaks_fixWindowTabSizes'               : 'Fix Tab-Größen im Fenster',
+        'str_GeneralTweaks_removeBlueLinkBorders'           : 'Entferne blauen Rand von aktivierten Links',
         // -- GeneralTweaks - antiAds
         'str_GeneralTweaks_antiAds'                     : 'Anti-Werbung',
         'str_GeneralTweaks_adsHideSpeedUpButtons'           : 'Entferne Speed-Up-Buttons',
@@ -2970,6 +3022,7 @@
         'str_GeneralTweaks_fleetDontBreakLines'             : 'Zeilen nicht umbrechen (kann bei langen Namen Fehler verursachen)',
         'str_GeneralTweaks_fleetReadableFilterButtons'      : 'Aussehen der Filter-Buttons verbessern (lesbarer machen)',
         'str_GeneralTweaks_fleetHideZeroFilterButtons'      : 'Verstecke Filter-Buttons ohne Truppen/Flotten-Bewegungen',
+        'str_GeneralTweaks_fleetMouseOverFleetInfo'         : 'Entferne Lupen-Icon und zeige Flotten-Info bei MouseOver',
 
 
 
