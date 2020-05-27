@@ -9,7 +9,6 @@
 - display missing/remaining resources
 - ... AND MUCH MORE!
 
-IkaTweaks is currently available in german, english and greek.
 If you want to help me localizing take a look at:
 [https://github.com/YveOne/Userscript-IkaTweaks/tree/master/languages](https://github.com/YveOne/Userscript-IkaTweaks/tree/master/languages)  
 (Or just take a look at the bottom of the sourcecode)
